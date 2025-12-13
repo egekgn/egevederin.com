@@ -247,15 +247,23 @@
         
         for (let i = 0; i < previewCount; i++) {
             const img = document.createElement('img');
-            img.src = galleryImages[i];
+            const webpSrc = galleryImages[i];
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${i + 1}`;
             // İlk 3 fotoğraf için eager loading (hızlı görünsün)
             img.loading = i === 0 ? 'eager' : 'lazy';
             img.fetchPriority = i === 0 ? 'high' : 'auto';
             img.decoding = 'async';
             
+            // WebP yüklenemezse JPEG fallback
             img.onerror = function() {
-                console.error('Fotoğraf yüklenemedi:', this.src);
+                const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
+                if (this.src !== jpegSrc) {
+                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                    this.src = jpegSrc;
+                } else {
+                    console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                }
             };
             img.onload = function() {
                 console.log('✓ Fotoğraf yüklendi:', this.src);
@@ -290,15 +298,23 @@
             item.className = 'gallery-modal__item';
             
             const img = document.createElement('img');
-            img.src = photo.filename;
+            const webpSrc = photo.filename;
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${index + 1}`;
             img.loading = 'lazy';
             img.decoding = 'async';
             img.fetchPriority = index < 6 ? 'high' : 'auto'; // İlk 6 fotoğraf için yüksek öncelik
             
+            // WebP yüklenemezse JPEG fallback
             img.onerror = function() {
-                console.error('Fotoğraf yüklenemedi:', this.src);
-                item.style.display = 'none';
+                const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
+                if (this.src !== jpegSrc) {
+                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                    this.src = jpegSrc;
+                } else {
+                    console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                    item.style.display = 'none';
+                }
             };
             
             item.appendChild(img);
@@ -343,14 +359,22 @@
         photoViewerImage.innerHTML = '';
         
         const img = document.createElement('img');
-        img.src = photo.filename;
+        const webpSrc = photo.filename;
+        img.src = webpSrc;
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
         img.loading = 'eager'; // Fotoğraf görüntüleyicide eager loading
         img.fetchPriority = 'high';
         img.decoding = 'async';
         
+        // WebP yüklenemezse JPEG fallback
         img.onerror = function() {
-            console.error('Fotoğraf yüklenemedi:', this.src);
+            const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
+            if (this.src !== jpegSrc) {
+                console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                this.src = jpegSrc;
+            } else {
+                console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+            }
         };
         
         photoViewerImage.appendChild(img);
