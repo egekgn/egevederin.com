@@ -256,8 +256,6 @@
             
             img.onerror = function() {
                 console.error('Fotoğraf yüklenemedi:', this.src);
-                // Hata durumunda görseli gizle
-                this.style.display = 'none';
             };
             img.onload = function() {
                 console.log('✓ Fotoğraf yüklendi:', this.src);
