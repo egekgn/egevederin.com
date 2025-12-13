@@ -1,0 +1,54 @@
+{
+  "photos": [
+    {
+      "id": 10,
+      "filename": "gallery/IMG_8884.jpeg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 9,
+      "filename": "gallery/06bfd7fe-f776-4306-bf6a-e294f8f7d8df.jpg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 8,
+      "filename": "gallery/IMG_3372.jpeg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 7,
+      "filename": "gallery/IMG_3149.JPG",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 6,
+      "filename": "gallery/D0B710F9-57E1-4365-A7C6-EAA3034CE308.JPG",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 5,
+      "filename": "gallery/IMG_8896.jpeg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 4,
+      "filename": "gallery/IMG_1710.jpeg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 3,
+      "filename": "gallery/3cb51970-a2f4-4ee3-8fdc-fb83590b5663.jpg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 2,
+      "filename": "gallery/IMG_8936.jpeg",
+      "uploadDate": "2025-12-12"
+    },
+    {
+      "id": 1,
+      "filename": "gallery/F1A6C860-E71A-4DC5-BFE4-8810C8877590_1_105_c.jpeg",
+      "uploadDate": "2025-12-12"
+    }
+  ]
+}

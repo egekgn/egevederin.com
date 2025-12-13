@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Galeri Yönetimi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        .admin-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .admin-header {
+            margin-bottom: 30px;
+        }
+        .admin-header h1 {
+            color: var(--primary);
+            text-shadow: 0 0 8px var(--primary);
+        }
+        .admin-section {
+            background: var(--card);
+            border: 1px solid rgba(255,34,68,0.35);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .admin-section h2 {
+            color: var(--text);
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .file-input-wrapper {
+            margin-bottom: 20px;
+        }
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(255,34,68,0.15), rgba(255,136,153,0.1));
+            border: 1px solid rgba(255,34,68,0.5);
+            border-radius: 8px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .file-input-label:hover {
+            background: linear-gradient(135deg, rgba(255,34,68,0.25), rgba(255,136,153,0.15));
+            box-shadow: 0 0 16px rgba(255,34,68,0.4);
+        }
+        .photo-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,34,68,0.3);
+            background: var(--bg-elev);
+        }
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-item-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(5, 7, 10, 0.9);
+            padding: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .photo-item-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 34, 68, 0.9);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .photo-item-delete:hover {
+            background: rgba(255, 34, 68, 1);
+            transform: scale(1.1);
+        }
+        .save-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(255,34,68,0.2), rgba(255,136,153,0.15));
+            border: 1px solid rgba(255,34,68,0.5);
+            border-radius: 8px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+        }
+        .save-button:hover {
+            background: linear-gradient(135deg, rgba(255,34,68,0.3), rgba(255,136,153,0.2));
+            box-shadow: 0 0 16px rgba(255,34,68,0.4);
+        }
+        .info-text {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .code-block {
+            background: var(--bg-elev);
+            border: 1px solid rgba(255,34,68,0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .copy-button {
+            padding: 12px 20px;
+            background: rgba(255,34,68,0.2);
+            border: 1px solid rgba(255,34,68,0.5);
+            border-radius: 8px;
+            color: var(--primary);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .copy-button:hover {
+            background: rgba(255,34,68,0.3);
+            box-shadow: 0 0 16px rgba(255,34,68,0.4);
+            transform: translateY(-2px);
+        }
+        .code-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,34,68,0.2);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .back-link:hover {
+            text-shadow: 0 0 8px var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
+        
+        <div class="admin-header">
+            <h1>Galeri Yönetimi</h1>
+            <p class="info-text">Buradan galeriye fotoğraf ekleyip silebilirsiniz. Fotoğraflarınızı "gallery" klasörüne yükleyin ve buradan ekleyin.</p>
+        </div>
+
+        <div class="admin-section">
+            <h2>Yeni Fotoğraf Ekle</h2>
+            <div class="file-input-wrapper">
+                <label for="photo-upload" class="file-input-label">Fotoğraf Seç</label>
+                <input type="file" id="photo-upload" accept="image/png,image/jpeg,image/jpg" />
+            </div>
+            <p class="info-text" id="upload-status"></p>
+        </div>
+
+        <div class="admin-section">
+            <h2>Galerideki Fotoğraflar</h2>
+            <div class="photo-list" id="photo-list">
+                <!-- Fotoğraflar buraya eklenecek -->
+            </div>
+            <button class="save-button" id="save-button" style="display: none;">Değişiklikleri Kaydet ve Güncelle</button>
+            
+            <div id="code-section" class="code-section" style="display: none;">
+                <h3 style="margin-top: 0; color: var(--primary);">✅ Otomatik Güncelleme Hazır!</h3>
+                <p class="info-text" style="color: var(--primary); font-weight: 600;">
+                    Aşağıdaki butonlara tıklayarak tüm dosyaları indirin ve kopyalayın:
+                </p>
+                
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+                    <button class="copy-button" id="copy-json-button" style="flex: 1; min-width: 150px;">📄 gallery.json İndir</button>
+                    <button class="copy-button" id="copy-html-button" style="flex: 1; min-width: 150px;">📄 index.html Kodu Kopyala</button>
+                    <button class="copy-button" id="copy-script-button" style="flex: 1; min-width: 150px;">🐍 Python Script İndir</button>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 16px; background: rgba(34,255,68,0.1); border: 1px solid rgba(34,255,68,0.3); border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #22ff44;">⚡ EN KOLAY YÖNTEM:</h4>
+                    <p style="margin: 8px 0; color: var(--text);">
+                        <strong>Python scriptini indirin ve çalıştırın:</strong><br>
+                        <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 8px;">python3 update-gallery.py</code><br>
+                        <span style="font-size: 12px; color: var(--muted);">Bu komut gallery.json'u okuyup index.html'i otomatik güncelleyecek!</span>
+                    </p>
+                </div>
+                
+                <div class="code-block" id="code-block" style="margin-top: 16px; display: none;"></div>
+                
+                <div style="margin-top: 20px; padding: 16px; background: rgba(255,34,68,0.1); border: 1px solid rgba(255,34,68,0.3); border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: var(--primary);">📋 Hızlı Talimatlar:</h4>
+                    <ol style="margin: 0; padding-left: 20px; color: var(--text);">
+                        <li style="margin-bottom: 8px;"><strong>KOLAY YOL:</strong> Python scriptini indirin, terminalde <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px;">python3 update-gallery.py</code> çalıştırın - HEPsi otomatik! ⚡</li>
+                        <li style="margin-bottom: 8px;"><strong>VEYA MANUEL:</strong> İndirilen <strong>gallery.json</strong> dosyasını site klasörüne kopyalayın</li>
+                        <li style="margin-bottom: 8px;"><strong>index.html</strong> dosyasını açın</li>
+                        <li style="margin-bottom: 8px;"><strong>&lt;/body&gt;</strong> etiketinden önceki <strong>&lt;script&gt;</strong> bloğunu bulun (window.galleryData içeren)</li>
+                        <li style="margin-bottom: 8px;">O bloğu silin ve yukarıdaki "index.html Kodu Kopyala" butonuna tıklayıp kodu yapıştırın</li>
+                        <li>Dosyayı kaydedin ve sayfayı yenileyin - fotoğraflar otomatik görünecek! 🎉</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let galleryData = [];
+        let hasChanges = false;
+
+        // JSON dosyasını yükle
+        async function loadGallery() {
+            try {
+                const response = await fetch('gallery.json');
+                const data = await response.json();
+                galleryData = data.photos || [];
+                renderPhotoList();
+            } catch (error) {
+                console.error('Galeri yüklenirken hata:', error);
+                galleryData = [];
+            }
+        }
+
+        // Fotoğraf listesini göster
+        function renderPhotoList() {
+            const photoList = document.getElementById('photo-list');
+            photoList.innerHTML = '';
+
+            // En son yüklenenler en üstte
+            const sortedPhotos = [...galleryData].sort((a, b) => {
+                return new Date(b.uploadDate) - new Date(a.uploadDate);
+            });
+
+            sortedPhotos.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                
+                const img = document.createElement('img');
+                img.src = photo.filename;
+                img.alt = `Fotoğraf ${photo.id}`;
+                img.onerror = function() {
+                    item.style.opacity = '0.5';
+                };
+
+                const info = document.createElement('div');
+                info.className = 'photo-item-info';
+                const date = new Date(photo.uploadDate);
+                const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+                info.textContent = `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'photo-item-delete';
+                deleteBtn.textContent = '×';
+                deleteBtn.title = 'Sil';
+                deleteBtn.onclick = () => deletePhoto(photo.id);
+
+                item.appendChild(img);
+                item.appendChild(info);
+                item.appendChild(deleteBtn);
+                photoList.appendChild(item);
+            });
+        }
+
+        // Fotoğraf sil
+        function deletePhoto(id) {
+            if (confirm('Bu fotoğrafı silmek istediğinizden emin misiniz?')) {
+                galleryData = galleryData.filter(photo => photo.id !== id);
+                hasChanges = true;
+                document.getElementById('save-button').style.display = 'block';
+                renderPhotoList();
+            }
+        }
+
+        // Yeni fotoğraf ekle
+        document.getElementById('photo-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('upload-status');
+            
+            // Dosya adını al (gallery/ klasörüne koyulacak)
+            const fileName = file.name;
+            const filePath = `gallery/${fileName}`;
+
+            // Yeni ID oluştur
+            const newId = galleryData.length > 0 
+                ? Math.max(...galleryData.map(p => p.id)) + 1 
+                : 1;
+
+            // Bugünün tarihini al
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const uploadDate = `${year}-${month}-${day}`;
+
+            // Yeni fotoğrafı ekle
+            const newPhoto = {
+                id: newId,
+                filename: filePath,
+                uploadDate: uploadDate
+            };
+
+            galleryData.push(newPhoto);
+            hasChanges = true;
+            document.getElementById('save-button').style.display = 'block';
+            
+            statusEl.textContent = `"${fileName}" eklendi. Değişiklikleri kaydetmeyi unutmayın!`;
+            statusEl.style.color = 'var(--primary)';
+            
+            renderPhotoList();
+            
+            // Input'u temizle
+            e.target.value = '';
+        });
+
+        // Değişiklikleri kaydet
+        document.getElementById('save-button').addEventListener('click', async function() {
+            // ID'lere göre sırala (en son eklenenler en üstte)
+            const sorted = [...galleryData].sort((a, b) => {
+                return new Date(b.uploadDate) - new Date(a.uploadDate);
+            });
+
+            const jsonData = {
+                photos: sorted
+            };
+
+            // 1. gallery.json içeriğini hazırla
+            const jsonContent = JSON.stringify(jsonData, null, 2);
+            
+            // 2. index.html için güncellenmiş script kısmını oluştur
+            const jsonString = JSON.stringify(jsonData, null, 12).replace(/^/gm, '        ');
+            const scriptStart = '    <';
+            const scriptTag = 'script>';
+            const scriptContent = scriptStart + scriptTag + '\n' +
+                '        // Gallery JSON data - inline olarak ekleniyor (file:// protokolü için)\n' +
+                '        window.galleryData = ' + jsonString + ';\n' +
+                '    </' + scriptTag;
+
+            // 3. Kodu göster
+            const codeSection = document.getElementById('code-section');
+            codeSection.style.display = 'block';
+            
+            // 4. gallery.json kopyala butonu
+            document.getElementById('copy-json-button').onclick = function() {
+                const jsonBlob = new Blob([jsonContent], { type: 'application/json' });
+                const jsonUrl = URL.createObjectURL(jsonBlob);
+                const jsonLink = document.createElement('a');
+                jsonLink.href = jsonUrl;
+                jsonLink.download = 'gallery.json';
+                jsonLink.click();
+                URL.revokeObjectURL(jsonUrl);
+                
+                this.textContent = '✓ İndirildi!';
+                setTimeout(() => {
+                    this.textContent = '📄 gallery.json İndir';
+                }, 2000);
+            };
+            
+            // 5. index.html kodu kopyala butonu
+            document.getElementById('copy-html-button').onclick = function() {
+                navigator.clipboard.writeText(scriptContent).then(() => {
+                    this.textContent = '✓ Kopyalandı!';
+                    setTimeout(() => {
+                        this.textContent = '📄 index.html Kodu Kopyala';
+                    }, 2000);
+                }).catch(() => {
+                    // Fallback: textarea ile kopyala
+                    const textarea = document.createElement('textarea');
+                    textarea.value = scriptContent;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    this.textContent = '✓ Kopyalandı!';
+                    setTimeout(() => {
+                        this.textContent = '📄 index.html Kodu Kopyala';
+                    }, 2000);
+                });
+            };
+            
+            // 6. Python script indir butonu - mevcut dosyayı kullan
+            document.getElementById('copy-script-button').onclick = function() {
+                // Mevcut update-gallery.py dosyasını fetch ile oku
+                fetch('update-gallery.py')
+                    .then(response => response.text())
+                    .then(pythonScript => {
+                        const scriptBlob = new Blob([pythonScript], { type: 'text/x-python' });
+                        const scriptUrl = URL.createObjectURL(scriptBlob);
+                        const scriptLink = document.createElement('a');
+                        scriptLink.href = scriptUrl;
+                        scriptLink.download = 'update-gallery.py';
+                        scriptLink.click();
+                        URL.revokeObjectURL(scriptUrl);
+                        
+                        this.textContent = '✓ İndirildi!';
+                        setTimeout(() => {
+                            this.textContent = '🐍 Python Script İndir';
+                        }, 2000);
+                    })
+                    .catch(() => {
+                        // Eğer dosya yoksa, basit bir mesaj göster
+                        alert('update-gallery.py dosyası bulunamadı. Lütfen dosyanın site klasöründe olduğundan emin olun.');
+                    });
+            };
+
+            hasChanges = false;
+            this.style.display = 'none';
+        });
+
+        // Sayfa yüklendiğinde
+        loadGallery();
+    </script>
+</body>
+</html>
+

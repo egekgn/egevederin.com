@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ege ve Derin</title>
+    <meta name="description" content="Kişisel blog - hacker temalı, karanlık ve neon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <canvas id="matrix-canvas" aria-hidden="true"></canvas>
+
+    <!-- Gizli Buton ve Kartpostal (Sol Üst Köşe) -->
+    <div class="hidden-postcard" id="hidden-postcard">
+        <button class="hidden-button" id="hidden-button" aria-label="Gizli buton" title=""></button>
+        <div class="postcard-content" id="postcard-content">
+            <button class="postcard__close" id="postcard-close" aria-label="Kapat">✕</button>
+            <div class="postcard__message-wrapper">
+                <p class="postcard__message">seni seviyorum kıvırcığım</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand__logo">></span>
+            <span class="brand__text">Hayatımın aşkı Derin'e</span>
+        </div>
+        <nav class="nav">
+            <a href="#yazilar">Yazılar</a>
+            <a href="#hakkimda">Hakkımda</a>
+            <a href="#yapilacaklar">Yapılacaklar</a>
+            <a href="#galeri">Galeri</a>
+            <a href="#sarkimiz">Şarkımız</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        <section id="yazilar" class="posts">
+            <div class="posts-container">
+                <article class="post-card" data-post-index="0">
+                    <h2 class="post-card__title">İlk Gönderi: Tanışma </h2>
+                    <p class="post-card__meta">YSS Ortaokulu • 2016-2017</p>
+                    <p class="post-card__excerpt">Ben 6.sınıftaydım kendi halimde takılan sıradan biriydim.Bir gün kantindeyken bir kız grubu geldi.Benim telefon numaramı istediler.</p>
+                    <a class="post-card__link" href="#">Devamını oku →</a>
+                    <div class="post-card__full" hidden>
+                        <p>Ben 6. sınıftaydım; kendi halimde takılan sıradan biriydim. Bir gün kantindeyken bir kız grubu geldi ve benim telefon numaramı istediler. O andan sonra hayatımda küçük ama dikkat çekici değişiklikler olmaya başladı. Ders aralarında gelen mesajlar, teneffüslerde kısa sohbetler derken, sosyal çevrem bir anda genişledi. Bu yazıda, o günün bende bıraktığı izleri ve sonrasında gelişen olayları biraz daha detaylı anlatıyorum. Neler hissettim, neler öğrendim ve nelere dikkat ettim... Hepsi burada.</p>
+                    </div>
+                </article>
+
+                <article class="post-card" data-post-index="1">
+                    <h2 class="post-card__title">İkinci Gönderi: Yeniden deneme</h2>
+                    <p class="post-card__meta">YSS Ortaokulu • 2018-2019</p>
+                    <p class="post-card__excerpt">Ben, yani ege; 8.sınıftaydım ve iki yıldır kalbimde derinin olduğunu hissediyordum.başkalarıyla konuşsanda derine hissettiğin duyguların bir farklı olduğunu anlıyor insan.Okulda gözleri arıyor,sürekli sağa sola bakıp duruyordum.Bir gün beden dersi için soyunma odasına bodrum kata indiğimde onu bir erkekle gördüm.</p>
+                    <a class="post-card__link" href="#">Devamını oku →</a>
+                    <div class="post-card__full" hidden>
+                        <p>Ben, yani ege; 8.sınıftaydım ve iki yıldır kalbimde derinin olduğunu hissediyordum.başkalarıyla konuşsanda derine hissettiğin duyguların bir farklı olduğunu anlıyor insan.Okulda gözleri arıyor,sürekli sağa sola bakıp duruyordum.Bir gün beden dersi için soyunma odasına bodrum kata indiğimde onu bir erkekle gördüm.</p>  
+                            </p>İlkokulda o çocukla her gün aynı servisle gidiyorduk.Aynı yerde iniyorduk fakat ortaokulda çok bir samimiyetimiz yoktu.O gün kalbimde midemde çok değişik duygular hissettim ve bu bir kaç gün sürdü.okula giderken karnıma ağrılar giriyordu.okulda tenefüse çıktığımda derini görüpte o çocukla beraber olduğunu göreceğim diye tereddütte kalıyordum.bir gün bizim sınıfın yanıındaki camın kenarında konuşurlerken gördüm. ve o gün okul çıkışında çocuğa yazdım.bu kızla görüşürsen arda,saru,batu(okulda her tenefüs takıldığımız dörtlü grubu) ile seni gelir döveriz diye.Ve bunu yapıcaktıkta.çocuk mesajlarda itiraz edince ertesi gün yanına gittik ve hallettik.Artık derin benim olacaktı.bunu kafaya koymuştum.ve o gün derine yazma kararı aldım.ne yazdığımı hatırlamıyorum fakat o çocukla sevgilimisin diye yazdığımı</p>
+                    </div>
+                </article>
+
+                <article class="post-card" data-post-index="2">
+                    <h2 class="post-card__title">Üçüncü Gönderi: Yıllar sonra</h2>
+                    <p class="post-card__meta">Lise • 2020-2021</p>
+                    <p class="post-card__excerpt">Son dönemde denediğim mini projeler ve öğrendiklerim.</p>
+                    <a class="post-card__link" href="#">Devamını oku →</a>
+                    <div class="post-card__full" hidden>
+                        <p>Bu bölümde ufak ama işlevsel araçları topluyorum: bir dosya isimlendirici, not arama aracı, CLI üzerinden hızlı şablon oluşturucu ve daha fazlası. Amaç, günlük akışı hızlandırmak.</p>
+                        <ul>
+                            <li>Şablon oluşturucu: Proje iskeletini saniyeler içinde hazırlar.</li>
+                            <li>Not arama: `ripgrep` ve `fzf` entegrasyonuyla anında sonuç.</li>
+                            <li>Mini otomasyonlar: Tekrarlı işleri tek komutla bitirir.</li>
+                        </ul>
+                        <p>Her aracın deposu ve notları yakında burada olacak.</p>
+                    </div>
+                </article>
+
+                <article class="post-card" data-post-index="3" style="display: none;">
+                    <h2 class="post-card__title">Dördüncü Gönderi: Günümüz</h2>
+                    <p class="post-card__meta">Kalplerin buluşması • 2023-<span class="infinity-symbol">∞</span></p>
+                    <p class="post-card__excerpt">Dördüncü gönderi içeriği buraya gelecek.</p>
+                    <a class="post-card__link" href="#">Devamını oku →</a>
+                    <div class="post-card__full" hidden>
+                        <p>Dördüncü gönderi içeriği buraya gelecek.</p>
+                    </div>
+                </article>
+            </div>
+            <button class="posts-nav-button posts-nav-button--prev" id="posts-prev-btn" aria-label="Geri" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button class="posts-nav-button posts-nav-button--next" id="posts-next-btn" aria-label="İleri">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </section>
+
+        <section id="hakkimda" class="about">
+            <div class="panel">
+                <h3>Hakkımızda</h3>
+                <p>Ortaokulda tanışmış; 6. sınıfta ve 8. sınıfta olmak üzere toplamda yaklaşık iki yıl birlikte olmuş bir çifttik. Birbirimizden kopamadık ve lisede yeniden şansımızı denedik fakat o dönem bunu yine ortaokuldaki gibi başaramadık. Şu anda ise yaşlarımız 19 ve 20…Ve biz iki yıldır beraberiz ve bu kez her şeyi bir kenara bırakıp sıfırdan başladık; çünkü artık birbirimizden asla vazgeçmeyeceğimizi anladık. Zaman zaman çok kavga edip küssek de hem kavga etmeyi hem de barışmayı iyi bilen bir çiftiz; çünkü bir ömür birlikte yaşayacaksak barışmayı bilmemiz gerektiğini ikimiz de çok iyi biliyoruz…ve bir ömür birlikte olmayı gerçekten çok istiyoruz.</p>
+            </div>
+        </section>
+
+        <section id="yapilacaklar" class="todo">
+            <article class="post-card">
+                <h2 class="post-card__title">Yapılacaklar Listesi</h2>
+                <p class="post-card__meta">Hayallerimiz ve Hedeflerimiz</p>
+                <p class="post-card__excerpt">Birlikte yapmak istediğimiz şeyler, gidilecek yerler ve yaşanacak anılar...</p>
+                <a class="post-card__link" href="#">Devamını oku →</a>
+                <div class="post-card__full" hidden>
+                    <div class="todo-list">
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-1" checked>
+                            <label for="todo-1" class="todo-label completed">Günübirlik tatil yap</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-2" checked>
+                            <label for="todo-2" class="todo-label completed">Yılbaşını beraber kutla</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-2" checked>
+                            <label for="todo-3" class="todo-label completed">Sahilde bize özel bank belirle</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-2" checked>
+                            <label for="todo-4" class="todo-label completed">Bize özel bir şarkı bul</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-3">
+                            <label for="todo-5" class="todo-label">Eskişehir'i gez</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-4">
+                            <label for="todo-6" class="todo-label">Almanya'ya git</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-5">
+                            <label for="todo-7" class="todo-label">Eyfel kulesi önünde fotoğraf çek</label>
+                        </div>
+                        <div class="todo-item">
+                            <input type="checkbox" id="todo-6">
+                            <label for="todo-8" class="todo-label">evlen</label>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section id="galeri" class="gallery">
+            <div class="panel">
+                <h3>Galeri</h3>
+                <div class="gallery-bubble">
+                    <div class="gallery-bubble__preview">
+                        <div class="gallery-bubble__image-container" data-gallery-preview>
+                            <!-- İlk 3 fotoğraf buraya eklenecek -->
+                        </div>
+                    </div>
+                    <a class="gallery-bubble__link" href="#" data-gallery-open>Devamını gör →</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="sarkimiz" class="music-player-section">
+            <div class="panel">
+                <h3>Şarkımız</h3>
+                <div class="music-player">
+                    <div class="music-player__cover">
+                        <img src="mehmet.jpg" alt="Albüm Kapağı" id="album-cover" />
+                    </div>
+                    <div class="music-player__info">
+                        <h4 class="music-player__title" id="song-title">Kimse Bilmez</h4>
+                        <p class="music-player__artist" id="song-artist">Mehmet Güreli</p>
+                    </div>
+                    <div class="music-player__progress">
+                        <span class="music-player__time" id="current-time">0:00</span>
+                        <div class="music-player__progress-bar">
+                            <div class="music-player__progress-track" id="progress-track">
+                                <div class="music-player__progress-fill" id="progress-fill"></div>
+                                <div class="music-player__progress-handle" id="progress-handle"></div>
+                            </div>
+                        </div>
+                        <span class="music-player__time" id="total-time">3:26</span>
+                    </div>
+                    <div class="music-player__controls">
+                        <button class="music-player__btn music-player__btn--repeat" id="repeat-btn" title="Tekrar">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 4v6h6" />
+                                <path d="M23 20v-6h-6" />
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" />
+                            </svg>
+                        </button>
+                        <button class="music-player__btn music-player__btn--restart" id="restart-btn" title="Başa Sar">
+                            <img src="başasar.webp" alt="Başa Sar" class="restart-icon" />
+                        </button>
+                        <button class="music-player__btn music-player__btn--play" id="play-btn" title="Oynat">
+                            <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                            <svg class="pause-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                            </svg>
+                        </button>
+                        <div class="music-player__right-controls">
+                            <div class="music-player__add-wrapper">
+                                <button class="music-player__btn music-player__btn--add" id="add-btn" title="Playlist'e Ekle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                </button>
+                                <div class="music-player__dropdown" id="add-dropdown" hidden>
+                                    <a href="#" class="music-player__dropdown-item" data-platform="spotify">
+                                        <img src="spotifylogo.png" alt="Spotify" class="platform-logo" />
+                                        <span>Spotify</span>
+                                    </a>
+                                    <a href="#" class="music-player__dropdown-item" data-platform="apple">
+                                        <img src="applemusiclogo.png" alt="Apple Music" class="platform-logo" />
+                                        <span>Apple Music</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <audio id="audio-player" preload="metadata">
+                        <source src="Mehmet Güreli - Kimse Bilmez.mp3" type="audio/mpeg">
+                        Tarayıcınız audio elementini desteklemiyor.
+                    </audio>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>© 2016 - <span id="year"></span></span>
+        <span class="dot">•</span>
+        <span>Ege Kağan Danacı</span>
+        <span class="dot">&</span>
+        <span>Derin Su Danacı</span>
+        <span class="dot">•</span>
+        <span>2016'dan beri birbirine aşık çift</span>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal-overlay" data-modal-overlay hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button class="modal__close" type="button" aria-label="Kapat" data-modal-close>✕</button>
+            <div class="modal__content" data-modal-content>
+                <!-- İçerik JS ile eklenecek -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Modal (Yazılar, Hakkımızda için) -->
+    <div class="section-modal" data-section-modal hidden>
+        <button class="section-modal__close" type="button" aria-label="Kapat" data-section-modal-close>✕</button>
+        <div class="section-modal__content" data-section-modal-content>
+            <!-- İçerik JS ile eklenecek -->
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" data-gallery-modal hidden>
+        <button class="gallery-modal__close" type="button" aria-label="Kapat" data-gallery-close>✕</button>
+        <div class="gallery-modal__content" data-gallery-content>
+            <!-- Galeri fotoğrafları buraya eklenecek -->
+        </div>
+    </div>
+
+    <!-- Photo Viewer Modal -->
+    <div class="photo-viewer" data-photo-viewer hidden>
+        <button class="photo-viewer__close" type="button" aria-label="Kapat" data-photo-viewer-close>✕</button>
+        <button class="photo-viewer__prev" type="button" aria-label="Önceki" data-photo-viewer-prev>‹</button>
+        <button class="photo-viewer__next" type="button" aria-label="Sonraki" data-photo-viewer-next>›</button>
+        <div class="photo-viewer__image-container" data-photo-viewer-image>
+            <!-- Büyütülmüş fotoğraf buraya eklenecek -->
+        </div>
+    </div>
+
+    <script>
+        // Gallery JSON data - inline olarak ekleniyor (file:// protokolü için)
+        window.galleryData = {
+                    "photos": [
+                                {
+                                            "id": 10,
+                                            "filename": "gallery/IMG_8884.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 9,
+                                            "filename": "gallery/06bfd7fe-f776-4306-bf6a-e294f8f7d8df.jpg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 8,
+                                            "filename": "gallery/IMG_3372.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 7,
+                                            "filename": "gallery/IMG_3149.JPG",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 6,
+                                            "filename": "gallery/D0B710F9-57E1-4365-A7C6-EAA3034CE308.JPG",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 5,
+                                            "filename": "gallery/IMG_8896.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 4,
+                                            "filename": "gallery/IMG_1710.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 3,
+                                            "filename": "gallery/3cb51970-a2f4-4ee3-8fdc-fb83590b5663.jpg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 2,
+                                            "filename": "gallery/IMG_8936.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                },
+                                {
+                                            "id": 1,
+                                            "filename": "gallery/F1A6C860-E71A-4DC5-BFE4-8810C8877590_1_105_c.jpeg",
+                                            "uploadDate": "2025-12-12"
+                                }
+                    ]
+        };
+    </script>
+    <script src="script.js"></script>
+    <noscript>Bu site animasyon için JavaScript kullanır.</noscript>
+</body>
+</html>
+
+
