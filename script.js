@@ -239,6 +239,11 @@
             return;
         }
         
+        // Container'ı görünür yap
+        galleryPreview.style.display = 'flex';
+        galleryPreview.style.visibility = 'visible';
+        galleryPreview.style.opacity = '1';
+        
         galleryPreview.innerHTML = '';
         const previewCount = Math.min(3, galleryImages.length);
         
@@ -248,21 +253,27 @@
         for (let i = 0; i < previewCount; i++) {
             const img = document.createElement('img');
             const webpSrc = galleryImages[i];
-            img.src = webpSrc;
+            const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
+            
+            // Önce JPEG dene (daha uyumlu)
+            img.src = jpegSrc;
             img.alt = `Fotoğraf ${i + 1}`;
             // İlk 3 fotoğraf için eager loading (hızlı görünsün)
             img.loading = i === 0 ? 'eager' : 'lazy';
             img.fetchPriority = i === 0 ? 'high' : 'auto';
             img.decoding = 'async';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.display = 'block';
             
-            // WebP yüklenemezse JPEG fallback
+            // JPEG yüklenemezse WebP dene
             img.onerror = function() {
-                const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
-                if (this.src !== jpegSrc) {
-                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
-                    this.src = jpegSrc;
+                if (this.src === jpegSrc) {
+                    console.log('JPEG yüklenemedi, WebP deneniyor:', webpSrc);
+                    this.src = webpSrc;
                 } else {
-                    console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                    console.error('Fotoğraf yüklenemedi (JPEG ve WebP):', webpSrc);
                 }
             };
             img.onload = function() {
@@ -271,6 +282,9 @@
             
             const container = document.createElement('div');
             container.className = 'gallery-bubble__image';
+            container.style.display = 'flex';
+            container.style.visibility = 'visible';
+            container.style.opacity = '1';
             container.appendChild(img);
             container.addEventListener('click', () => openPhotoViewer(i));
             
