@@ -742,20 +742,23 @@
     // Play/Pause butonu
     playBtn.addEventListener('click', function() {
         if (audio.paused) {
-            // Eğer audio henüz yüklenmemişse, önce yükle
-            if (audio.readyState < 2) {
+            // Streaming için: Dosya yüklenirken çalmaya başla
+            // readyState 2 = HAVE_CURRENT_DATA (yeterli veri var, çalabilir)
+            if (audio.readyState >= 2) {
+                // Yeterli veri var, direkt çal
+                audio.play().catch(err => {
+                    console.error('Play error:', err);
+                });
+            } else {
+                // Henüz yeterli veri yok, yükle ve çal
                 audio.load();
-                // Metadata yüklendikten sonra çal
-                audio.addEventListener('loadedmetadata', function playAfterLoad() {
-                    audio.removeEventListener('loadedmetadata', playAfterLoad);
+                // Canplay event'i: Yeterli veri yüklendi, çalabilir
+                audio.addEventListener('canplay', function playWhenReady() {
+                    audio.removeEventListener('canplay', playWhenReady);
                     audio.play().catch(err => {
                         console.error('Play error:', err);
                     });
                 }, { once: true });
-            } else {
-                audio.play().catch(err => {
-                    console.error('Play error:', err);
-                });
             }
             playIcon.style.display = 'none';
             pauseIcon.style.display = 'block';
