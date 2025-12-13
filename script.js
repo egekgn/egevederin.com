@@ -742,7 +742,21 @@
     // Play/Pause butonu
     playBtn.addEventListener('click', function() {
         if (audio.paused) {
-            audio.play();
+            // Eğer audio henüz yüklenmemişse, önce yükle
+            if (audio.readyState < 2) {
+                audio.load();
+                // Metadata yüklendikten sonra çal
+                audio.addEventListener('loadedmetadata', function playAfterLoad() {
+                    audio.removeEventListener('loadedmetadata', playAfterLoad);
+                    audio.play().catch(err => {
+                        console.error('Play error:', err);
+                    });
+                }, { once: true });
+            } else {
+                audio.play().catch(err => {
+                    console.error('Play error:', err);
+                });
+            }
             playIcon.style.display = 'none';
             pauseIcon.style.display = 'block';
         } else {
