@@ -240,9 +240,14 @@
         }
         
         // Container'ı görünür yap
+        if (galleryPreview.parentElement) {
+            galleryPreview.parentElement.style.display = 'flex';
+            galleryPreview.parentElement.style.visibility = 'visible';
+        }
         galleryPreview.style.display = 'flex';
         galleryPreview.style.visibility = 'visible';
         galleryPreview.style.opacity = '1';
+        galleryPreview.style.width = '100%';
         
         galleryPreview.innerHTML = '';
         const previewCount = Math.min(3, galleryImages.length);
@@ -255,29 +260,25 @@
             const webpSrc = galleryImages[i];
             const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
             
-            // Önce JPEG dene (daha uyumlu)
-            img.src = jpegSrc;
+            // Albüm kapağı gibi basit fallback - önce WebP, sonra JPEG
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${i + 1}`;
-            // İlk 3 fotoğraf için eager loading (hızlı görünsün)
             img.loading = i === 0 ? 'eager' : 'lazy';
             img.fetchPriority = i === 0 ? 'high' : 'auto';
             img.decoding = 'async';
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.display = 'block';
             
-            // JPEG yüklenemezse WebP dene
+            // Basit fallback - albüm kapağı gibi
             img.onerror = function() {
-                if (this.src === jpegSrc) {
-                    console.log('JPEG yüklenemedi, WebP deneniyor:', webpSrc);
-                    this.src = webpSrc;
+                if (this.src === webpSrc) {
+                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                    this.src = jpegSrc;
                 } else {
-                    console.error('Fotoğraf yüklenemedi (JPEG ve WebP):', webpSrc);
+                    console.error('Fotoğraf yüklenemedi:', webpSrc);
                 }
             };
+            
             img.onload = function() {
-                console.log('✓ Fotoğraf yüklendi:', this.src);
+                console.log('✓ Fotoğraf yüklendi:', this.src, 'Boyut:', this.naturalWidth + 'x' + this.naturalHeight);
             };
             
             const container = document.createElement('div');
@@ -285,6 +286,14 @@
             container.style.display = 'flex';
             container.style.visibility = 'visible';
             container.style.opacity = '1';
+            container.style.flex = '1';
+            container.style.minWidth = '0';
+            container.style.aspectRatio = '1';
+            container.style.borderRadius = '10px';
+            container.style.overflow = 'hidden';
+            container.style.border = '1px solid rgba(255,34,68,0.3)';
+            container.style.cursor = 'pointer';
+            container.style.background = 'var(--bg-elev)';
             container.appendChild(img);
             container.addEventListener('click', () => openPhotoViewer(i));
             
