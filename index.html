@@ -165,7 +165,10 @@
                 <h3>Şarkımız</h3>
                 <div class="music-player">
                     <div class="music-player__cover">
-                        <img src="mehmet.webp" alt="Albüm Kapağı" id="album-cover" loading="eager" fetchpriority="high" decoding="async" />
+                        <picture>
+                            <source srcset="mehmet.webp" type="image/webp">
+                            <img src="mehmet.jpg" alt="Albüm Kapağı" id="album-cover" loading="eager" fetchpriority="high" decoding="async" />
+                        </picture>
                     </div>
                     <div class="music-player__info">
                         <h4 class="music-player__title" id="song-title">Kimse Bilmez</h4>
