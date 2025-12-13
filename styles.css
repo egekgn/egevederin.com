@@ -858,6 +858,12 @@ body::after {
     height: 100%;
     object-fit: cover;
     display: block;
+    /* Performans optimizasyonları */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* GPU acceleration */
 }
 
 .gallery-bubble__link {
@@ -956,6 +962,12 @@ body::after {
     height: 100%;
     object-fit: cover;
     display: block;
+    /* Performans optimizasyonları */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* GPU acceleration */
 }
 
 /* Photo Viewer (iPhone galerisi gibi) */
