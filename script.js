@@ -248,7 +248,12 @@
             const img = document.createElement('img');
             img.src = galleryImages[i];
             img.alt = `Fotoğraf ${i + 1}`;
-            img.loading = 'lazy';
+            // İlk 3 fotoğraf için eager loading (hızlı görünsün)
+            img.loading = i === 0 ? 'eager' : 'lazy';
+            img.fetchPriority = i === 0 ? 'high' : 'auto';
+            img.decoding = 'async';
+            // WebP format desteği
+            img.type = 'image/webp';
             img.onerror = function() {
                 console.error('Fotoğraf yüklenemedi:', galleryImages[i]);
                 this.style.display = 'none';
@@ -269,6 +274,16 @@
             
             galleryPreview.appendChild(container);
         }
+        
+        // İlk fotoğrafı preload et (performans için)
+        if (galleryImages.length > 0) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = galleryImages[0];
+            link.type = 'image/webp';
+            document.head.appendChild(link);
+        }
     }
 
     // Galeri modal'ını aç
@@ -285,6 +300,9 @@
             img.src = photo.filename;
             img.alt = `Fotoğraf ${index + 1}`;
             img.loading = 'lazy';
+            img.decoding = 'async';
+            img.fetchPriority = index < 6 ? 'high' : 'auto'; // İlk 6 fotoğraf için yüksek öncelik
+            img.type = 'image/webp';
             img.onerror = function() {
                 item.style.display = 'none';
             };
@@ -333,6 +351,10 @@
         const img = document.createElement('img');
         img.src = photo.filename;
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
+        img.loading = 'eager'; // Fotoğraf görüntüleyicide eager loading
+        img.fetchPriority = 'high';
+        img.decoding = 'async';
+        img.type = 'image/webp';
         photoViewerImage.appendChild(img);
         
         // Tarih bilgisini ekle
