@@ -246,7 +246,8 @@
         
         for (let i = 0; i < previewCount; i++) {
             const img = document.createElement('img');
-            img.src = galleryImages[i];
+            const webpSrc = galleryImages[i];
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${i + 1}`;
             // İlk 3 fotoğraf için eager loading (hızlı görünsün)
             img.loading = i === 0 ? 'eager' : 'lazy';
@@ -254,17 +255,31 @@
             img.decoding = 'async';
             // WebP format desteği
             img.type = 'image/webp';
+            
+            // WebP yüklenemezse JPEG fallback
             img.onerror = function() {
-                console.error('Fotoğraf yüklenemedi:', galleryImages[i]);
-                this.style.display = 'none';
-                // Container'ı da gizle
-                const container = this.parentElement;
-                if (container) {
-                    container.style.display = 'none';
+                // Eğer zaten JPEG deniyorsa, gizle
+                if (this.src.includes('.jpg') || this.src.includes('.jpeg') || this.src.includes('.JPG') || this.src.includes('.JPEG')) {
+                    console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                    this.style.display = 'none';
+                    const container = this.parentElement;
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                    return;
                 }
+                
+                // WebP yüklenemedi, JPEG'e dön
+                const baseName = webpSrc.replace(/\.webp$/i, '');
+                // Önce .jpg dene, sonra .jpeg, .JPG, .JPEG
+                const jpegExtensions = ['.jpg', '.jpeg', '.JPG', '.JPEG'];
+                let jpegSrc = baseName + jpegExtensions[0];
+                
+                console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                this.src = jpegSrc;
             };
             img.onload = function() {
-                console.log('Fotoğraf yüklendi:', galleryImages[i]);
+                console.log('Fotoğraf yüklendi:', this.src);
             };
             
             const container = document.createElement('div');
@@ -297,14 +312,26 @@
             item.className = 'gallery-modal__item';
             
             const img = document.createElement('img');
-            img.src = photo.filename;
+            const webpSrc = photo.filename;
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${index + 1}`;
             img.loading = 'lazy';
             img.decoding = 'async';
             img.fetchPriority = index < 6 ? 'high' : 'auto'; // İlk 6 fotoğraf için yüksek öncelik
             img.type = 'image/webp';
+            
+            // WebP yüklenemezse JPEG fallback
             img.onerror = function() {
-                item.style.display = 'none';
+                // Eğer zaten JPEG deniyorsa, gizle
+                if (this.src.includes('.jpg') || this.src.includes('.jpeg') || this.src.includes('.JPG') || this.src.includes('.JPEG')) {
+                    item.style.display = 'none';
+                    return;
+                }
+                
+                // WebP yüklenemedi, JPEG'e dön
+                const baseName = webpSrc.replace(/\.webp$/i, '');
+                const jpegSrc = baseName + '.jpg'; // Önce .jpg dene
+                this.src = jpegSrc;
             };
             
             item.appendChild(img);
@@ -349,12 +376,28 @@
         photoViewerImage.innerHTML = '';
         
         const img = document.createElement('img');
-        img.src = photo.filename;
+        const webpSrc = photo.filename;
+        img.src = webpSrc;
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
         img.loading = 'eager'; // Fotoğraf görüntüleyicide eager loading
         img.fetchPriority = 'high';
         img.decoding = 'async';
         img.type = 'image/webp';
+        
+        // WebP yüklenemezse JPEG fallback
+        img.onerror = function() {
+            // Eğer zaten JPEG deniyorsa, hata göster
+            if (this.src.includes('.jpg') || this.src.includes('.jpeg') || this.src.includes('.JPG') || this.src.includes('.JPEG')) {
+                console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                return;
+            }
+            
+            // WebP yüklenemedi, JPEG'e dön
+            const baseName = webpSrc.replace(/\.webp$/i, '');
+            const jpegSrc = baseName + '.jpg'; // Önce .jpg dene
+            this.src = jpegSrc;
+        };
+        
         photoViewerImage.appendChild(img);
         
         // Tarih bilgisini ekle
