@@ -689,7 +689,21 @@
     
     // Toplam süreyi göster
     audio.addEventListener('loadedmetadata', function() {
-        totalTimeEl.textContent = formatTime(audio.duration);
+        if (audio.duration && isFinite(audio.duration)) {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        } else {
+            totalTimeEl.textContent = '0:00';
+        }
+    });
+    
+    // Audio yükleme hatalarını yakala
+    audio.addEventListener('error', function(e) {
+        console.error('Audio loading error:', e);
+        console.error('Audio error details:', audio.error);
+        if (audio.error) {
+            console.error('Error code:', audio.error.code);
+            console.error('Error message:', audio.error.message);
+        }
     });
     
     // Progress güncellemesi
@@ -731,11 +745,24 @@
         restartBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            audio.currentTime = 0;
-            updateProgress();
-            // Eğer şarkı çalıyorsa, başa döndükten sonra devam etsin
-            if (!audio.paused) {
-                audio.play();
+            
+            // Audio element'in hazır olduğundan emin ol
+            if (audio.readyState >= 2) {
+                audio.currentTime = 0;
+                updateProgress();
+                // Eğer şarkı çalıyorsa, başa döndükten sonra devam etsin
+                if (!audio.paused) {
+                    audio.play().catch(err => {
+                        console.error('Play error:', err);
+                    });
+                }
+            } else {
+                // Audio henüz yüklenmemişse, yüklemeyi bekle
+                audio.addEventListener('loadedmetadata', function() {
+                    audio.currentTime = 0;
+                    updateProgress();
+                }, { once: true });
+                audio.load();
             }
         });
     } else {
