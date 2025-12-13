@@ -229,9 +229,21 @@
 
     // Galeri önizlemesini oluştur (ilk 3 fotoğraf)
     function renderPreview() {
+        console.log('renderPreview çağrıldı');
+        console.log('galleryPreview:', galleryPreview);
+        console.log('galleryImages.length:', galleryImages.length);
+        
         if (!galleryPreview) {
             console.error('galleryPreview elementi bulunamadı');
-            return;
+            // Tekrar dene
+            const retry = document.querySelector('[data-gallery-preview]');
+            if (retry) {
+                console.log('galleryPreview tekrar bulundu:', retry);
+                galleryPreview = retry;
+            } else {
+                console.error('galleryPreview hiç bulunamadı!');
+                return;
+            }
         }
         
         if (galleryImages.length === 0) {
@@ -243,11 +255,13 @@
         if (galleryPreview.parentElement) {
             galleryPreview.parentElement.style.display = 'flex';
             galleryPreview.parentElement.style.visibility = 'visible';
+            console.log('Parent element görünür yapıldı:', galleryPreview.parentElement);
         }
         galleryPreview.style.display = 'flex';
         galleryPreview.style.visibility = 'visible';
         galleryPreview.style.opacity = '1';
         galleryPreview.style.width = '100%';
+        console.log('galleryPreview stilleri ayarlandı');
         
         galleryPreview.innerHTML = '';
         const previewCount = Math.min(3, galleryImages.length);
@@ -260,25 +274,38 @@
             const webpSrc = galleryImages[i];
             const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
             
+            console.log(`[${i}] WebP: ${webpSrc}, JPEG: ${jpegSrc}`);
+            
             // Albüm kapağı gibi basit fallback - önce WebP, sonra JPEG
             img.src = webpSrc;
             img.alt = `Fotoğraf ${i + 1}`;
             img.loading = i === 0 ? 'eager' : 'lazy';
             img.fetchPriority = i === 0 ? 'high' : 'auto';
             img.decoding = 'async';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.display = 'block';
+            
+            let errorCount = 0;
             
             // Basit fallback - albüm kapağı gibi
             img.onerror = function() {
-                if (this.src === webpSrc) {
-                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
+                errorCount++;
+                console.error(`[${i}] Hata (${errorCount}):`, this.src);
+                if (errorCount === 1 && this.src === webpSrc) {
+                    console.log(`[${i}] WebP yüklenemedi, JPEG deneniyor:`, jpegSrc);
                     this.src = jpegSrc;
                 } else {
-                    console.error('Fotoğraf yüklenemedi:', webpSrc);
+                    console.error(`[${i}] Her iki format da yüklenemedi. WebP: ${webpSrc}, JPEG: ${jpegSrc}`);
+                    // Hata durumunda bile görseli göster (placeholder olarak)
+                    this.style.backgroundColor = 'rgba(255,34,68,0.1)';
+                    this.style.border = '2px dashed rgba(255,34,68,0.3)';
                 }
             };
             
             img.onload = function() {
-                console.log('✓ Fotoğraf yüklendi:', this.src, 'Boyut:', this.naturalWidth + 'x' + this.naturalHeight);
+                console.log(`[${i}] ✓ Fotoğraf yüklendi:`, this.src, 'Boyut:', this.naturalWidth + 'x' + this.naturalHeight);
             };
             
             const container = document.createElement('div');
@@ -294,11 +321,15 @@
             container.style.border = '1px solid rgba(255,34,68,0.3)';
             container.style.cursor = 'pointer';
             container.style.background = 'var(--bg-elev)';
+            container.style.minHeight = '150px';
             container.appendChild(img);
             container.addEventListener('click', () => openPhotoViewer(i));
             
             galleryPreview.appendChild(container);
+            console.log(`[${i}] Container eklendi, toplam container sayısı:`, galleryPreview.children.length);
         }
+        
+        console.log('Galeri önizleme render tamamlandı. Toplam container:', galleryPreview.children.length);
         
         // İlk fotoğrafı preload et (performans için)
         if (galleryImages.length > 0) {
