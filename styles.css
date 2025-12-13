@@ -616,6 +616,8 @@ body::after {
 .music-player__btn--restart {
     order: 1 !important;
     display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     visibility: visible !important;
     opacity: 1 !important;
     background: transparent !important;
@@ -630,6 +632,8 @@ body::after {
     width: 56px !important;
     height: 56px !important;
     color: var(--primary) !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .music-player__btn--restart .restart-icon {
@@ -637,7 +641,11 @@ body::after {
     height: 32px !important;
     object-fit: contain;
     display: block;
-    filter: brightness(0) saturate(100%) invert(27%) sepia(95%) saturate(5000%) hue-rotate(340deg) brightness(1.1);
+    /* Neon kırmızı renk için filter */
+    filter: brightness(0) saturate(100%) invert(14%) sepia(93%) saturate(7470%) hue-rotate(330deg) brightness(100%) contrast(100%);
+    /* Görsel yüklenemezse fallback */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 .music-player__btn--restart:hover {
