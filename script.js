@@ -326,13 +326,11 @@
                     img.src = nextSrc;
                     currentFormatIndex++;
                     
-                    // Mobilde timeout ekle (5 saniye)
-                    if (isMobile) {
-                        loadTimeout = setTimeout(() => {
-                            console.warn(`[${i}] Timeout:`, nextSrc);
-                            tryNextFormat();
-                        }, 5000);
-                    }
+                    // Timeout ekle (2 saniye - daha hızlı fallback)
+                    loadTimeout = setTimeout(() => {
+                        console.warn(`[${i}] Timeout (2s):`, nextSrc);
+                        tryNextFormat();
+                    }, 2000);
                 } else {
                     console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
                     img.style.backgroundColor = 'rgba(255,34,68,0.1)';
@@ -346,6 +344,7 @@
                     clearTimeout(loadTimeout);
                     loadTimeout = null;
                 }
+                // Hemen bir sonraki formatı dene (timeout beklemeden)
                 tryNextFormat();
             };
             
@@ -451,12 +450,10 @@
                     img.src = allFormats[currentFormatIndex];
                     currentFormatIndex++;
                     
-                    // Mobilde timeout ekle (5 saniye)
-                    if (isMobile) {
-                        loadTimeout = setTimeout(() => {
-                            tryNextFormat();
-                        }, 5000);
-                    }
+                    // Timeout ekle (2 saniye - daha hızlı fallback)
+                    loadTimeout = setTimeout(() => {
+                        tryNextFormat();
+                    }, 2000);
                 } else {
                     console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
@@ -468,6 +465,7 @@
                     clearTimeout(loadTimeout);
                     loadTimeout = null;
                 }
+                // Hemen bir sonraki formatı dene (timeout beklemeden)
                 tryNextFormat();
             };
             
@@ -571,13 +569,11 @@
                 img.src = allFormats[currentFormatIndex];
                 currentFormatIndex++;
                 
-                // Mobilde timeout ekle (5 saniye)
-                if (isMobile) {
-                    loadTimeout = setTimeout(() => {
-                        console.warn('Timeout:', allFormats[currentFormatIndex - 1]);
-                        tryNextFormat();
-                    }, 5000);
-                }
+                // Timeout ekle (2 saniye - daha hızlı fallback)
+                loadTimeout = setTimeout(() => {
+                    console.warn('Timeout (2s):', allFormats[currentFormatIndex - 1]);
+                    tryNextFormat();
+                }, 2000);
             } else {
                 console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
             }
@@ -589,6 +585,7 @@
                 clearTimeout(loadTimeout);
                 loadTimeout = null;
             }
+            // Hemen bir sonraki formatı dene (timeout beklemeden)
             tryNextFormat();
         };
         
