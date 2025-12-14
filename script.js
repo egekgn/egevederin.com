@@ -272,9 +272,20 @@
         for (let i = 0; i < previewCount; i++) {
             const img = document.createElement('img');
             const webpSrc = galleryImages[i];
-            const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
             
-            console.log(`[${i}] WebP: ${webpSrc}, JPEG: ${jpegSrc}`);
+            // Tüm olası JPEG uzantılarını dene
+            const baseName = webpSrc.replace(/\.webp$/i, '');
+            const jpegVariants = [
+                baseName + '.jpg',
+                baseName + '.jpeg',
+                baseName + '.JPG',
+                baseName + '.JPEG',
+                baseName + '.Jpg',
+                baseName + '.Jpeg'
+            ];
+            
+            console.log(`[${i}] WebP: ${webpSrc}`);
+            console.log(`[${i}] JPEG fallback'ler:`, jpegVariants);
             
             // Albüm kapağı gibi basit fallback - önce WebP, sonra JPEG
             img.src = webpSrc;
@@ -288,17 +299,33 @@
             img.style.display = 'block';
             
             let errorCount = 0;
+            let currentJpegIndex = 0;
             
-            // Basit fallback - albüm kapağı gibi
+            // Tüm JPEG varyantlarını dene
             img.onerror = function() {
                 errorCount++;
                 console.error(`[${i}] Hata (${errorCount}):`, this.src);
+                
                 if (errorCount === 1 && this.src === webpSrc) {
-                    console.log(`[${i}] WebP yüklenemedi, JPEG deneniyor:`, jpegSrc);
-                    this.src = jpegSrc;
+                    // WebP yüklenemedi, ilk JPEG varyantını dene
+                    if (currentJpegIndex < jpegVariants.length) {
+                        const nextJpeg = jpegVariants[currentJpegIndex];
+                        console.log(`[${i}] WebP yüklenemedi, JPEG deneniyor (${currentJpegIndex + 1}/${jpegVariants.length}):`, nextJpeg);
+                        this.src = nextJpeg;
+                        currentJpegIndex++;
+                    } else {
+                        console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
+                        this.style.backgroundColor = 'rgba(255,34,68,0.1)';
+                        this.style.border = '2px dashed rgba(255,34,68,0.3)';
+                    }
+                } else if (errorCount > 1 && currentJpegIndex < jpegVariants.length) {
+                    // Bir önceki JPEG yüklenemedi, bir sonrakini dene
+                    const nextJpeg = jpegVariants[currentJpegIndex];
+                    console.log(`[${i}] JPEG yüklenemedi, bir sonraki deneniyor (${currentJpegIndex + 1}/${jpegVariants.length}):`, nextJpeg);
+                    this.src = nextJpeg;
+                    currentJpegIndex++;
                 } else {
-                    console.error(`[${i}] Her iki format da yüklenemedi. WebP: ${webpSrc}, JPEG: ${jpegSrc}`);
-                    // Hata durumunda bile görseli göster (placeholder olarak)
+                    console.error(`[${i}] Tüm formatlar denendi, yüklenemedi. WebP: ${webpSrc}`);
                     this.style.backgroundColor = 'rgba(255,34,68,0.1)';
                     this.style.border = '2px dashed rgba(255,34,68,0.3)';
                 }
@@ -353,20 +380,45 @@
             
             const img = document.createElement('img');
             const webpSrc = photo.filename;
+            
+            // Tüm olası JPEG uzantılarını dene
+            const baseName = webpSrc.replace(/\.webp$/i, '');
+            const jpegVariants = [
+                baseName + '.jpg',
+                baseName + '.jpeg',
+                baseName + '.JPG',
+                baseName + '.JPEG',
+                baseName + '.Jpg',
+                baseName + '.Jpeg'
+            ];
+            
             img.src = webpSrc;
             img.alt = `Fotoğraf ${index + 1}`;
             img.loading = 'lazy';
             img.decoding = 'async';
             img.fetchPriority = index < 6 ? 'high' : 'auto'; // İlk 6 fotoğraf için yüksek öncelik
             
-            // WebP yüklenemezse JPEG fallback
+            let errorCount = 0;
+            let currentJpegIndex = 0;
+            
+            // Tüm JPEG varyantlarını dene
             img.onerror = function() {
-                const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
-                if (this.src !== jpegSrc) {
-                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
-                    this.src = jpegSrc;
+                errorCount++;
+                if (errorCount === 1 && this.src === webpSrc) {
+                    // WebP yüklenemedi, ilk JPEG varyantını dene
+                    if (currentJpegIndex < jpegVariants.length) {
+                        this.src = jpegVariants[currentJpegIndex];
+                        currentJpegIndex++;
+                    } else {
+                        console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
+                        item.style.display = 'none';
+                    }
+                } else if (errorCount > 1 && currentJpegIndex < jpegVariants.length) {
+                    // Bir önceki JPEG yüklenemedi, bir sonrakini dene
+                    this.src = jpegVariants[currentJpegIndex];
+                    currentJpegIndex++;
                 } else {
-                    console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                    console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
                 }
             };
@@ -414,20 +466,46 @@
         
         const img = document.createElement('img');
         const webpSrc = photo.filename;
+        
+        // Tüm olası JPEG uzantılarını dene
+        const baseName = webpSrc.replace(/\.webp$/i, '');
+        const jpegVariants = [
+            baseName + '.jpg',
+            baseName + '.jpeg',
+            baseName + '.JPG',
+            baseName + '.JPEG',
+            baseName + '.Jpg',
+            baseName + '.Jpeg'
+        ];
+        
         img.src = webpSrc;
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
         img.loading = 'eager'; // Fotoğraf görüntüleyicide eager loading
         img.fetchPriority = 'high';
         img.decoding = 'async';
         
-        // WebP yüklenemezse JPEG fallback
+        let errorCount = 0;
+        let currentJpegIndex = 0;
+        
+        // Tüm JPEG varyantlarını dene
         img.onerror = function() {
-            const jpegSrc = webpSrc.replace(/\.webp$/i, '.jpg');
-            if (this.src !== jpegSrc) {
-                console.log('WebP yüklenemedi, JPEG deneniyor:', jpegSrc);
-                this.src = jpegSrc;
+            errorCount++;
+            if (errorCount === 1 && this.src === webpSrc) {
+                // WebP yüklenemedi, ilk JPEG varyantını dene
+                if (currentJpegIndex < jpegVariants.length) {
+                    console.log('WebP yüklenemedi, JPEG deneniyor:', jpegVariants[currentJpegIndex]);
+                    this.src = jpegVariants[currentJpegIndex];
+                    currentJpegIndex++;
+                } else {
+                    console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
+                }
+            } else if (errorCount > 1 && currentJpegIndex < jpegVariants.length) {
+                // Bir önceki JPEG yüklenemedi, bir sonrakini dene
+                console.log('JPEG yüklenemedi, bir sonraki deneniyor:', jpegVariants[currentJpegIndex]);
+                this.src = jpegVariants[currentJpegIndex];
+                currentJpegIndex++;
             } else {
-                console.error('Fotoğraf yüklenemedi (WebP ve JPEG):', webpSrc);
+                console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
             }
         };
         
