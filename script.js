@@ -326,11 +326,11 @@
                     img.src = nextSrc;
                     currentFormatIndex++;
                     
-                    // Timeout ekle (2 saniye - daha hızlı fallback)
+                    // Timeout ekle (300ms - çok hızlı fallback)
                     loadTimeout = setTimeout(() => {
-                        console.warn(`[${i}] Timeout (2s):`, nextSrc);
+                        console.warn(`[${i}] Timeout (300ms):`, nextSrc);
                         tryNextFormat();
-                    }, 2000);
+                    }, 300);
                 } else {
                     console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
                     img.style.backgroundColor = 'rgba(255,34,68,0.1)';
@@ -382,14 +382,29 @@
         
         console.log('Galeri önizleme render tamamlandı. Toplam container:', galleryPreview.children.length);
         
-        // İlk fotoğrafı preload et (performans için)
-        if (galleryImages.length > 0) {
+        // TÜM fotoğrafları preload et (performans için)
+        // Mobilde JPEG, desktop'ta WebP preload et
+        console.log('Tüm fotoğraflar preload ediliyor...');
+        
+        for (let i = 0; i < galleryImages.length; i++) {
+            const webpSrc = galleryImages[i];
+            const baseName = webpSrc.replace(/\.webp$/i, '');
+            
+            // Mobilde önce JPEG preload et, desktop'ta WebP
+            const preloadSrc = isMobile ? (baseName + '.jpg') : webpSrc;
+            
             const link = document.createElement('link');
             link.rel = 'preload';
             link.as = 'image';
-            link.href = galleryImages[0];
+            link.href = preloadSrc;
+            link.fetchPriority = i < 3 ? 'high' : 'auto'; // İlk 3 yüksek öncelik
             document.head.appendChild(link);
+            
+            if (i < 5) { // İlk 5'i logla
+                console.log(`Preload eklendi [${i}]:`, preloadSrc);
+            }
         }
+        console.log(`Toplam ${galleryImages.length} fotoğraf preload edildi`);
     }
 
     // Galeri modal'ını aç
@@ -400,6 +415,25 @@
         
         // Mobil cihaz kontrolü
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Tüm fotoğrafları preload et (modal açıldığında - hızlı yükleme için)
+        console.log('Galeri modal açıldı - tüm fotoğraflar preload ediliyor...');
+        for (let i = 0; i < galleryImages.length; i++) {
+            const webpSrc = galleryImages[i];
+            const baseName = webpSrc.replace(/\.webp$/i, '');
+            const preloadSrc = isMobile ? (baseName + '.jpg') : webpSrc;
+            
+            // Zaten preload edilmiş olabilir, kontrol et
+            const existingPreload = document.querySelector(`link[rel="preload"][href="${preloadSrc}"]`);
+            if (!existingPreload) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = preloadSrc;
+                link.fetchPriority = 'high';
+                document.head.appendChild(link);
+            }
+        }
         
         galleryData.forEach((photo, index) => {
             const item = document.createElement('div');
@@ -450,10 +484,10 @@
                     img.src = allFormats[currentFormatIndex];
                     currentFormatIndex++;
                     
-                    // Timeout ekle (2 saniye - daha hızlı fallback)
+                    // Timeout ekle (500ms - çok hızlı fallback)
                     loadTimeout = setTimeout(() => {
                         tryNextFormat();
-                    }, 2000);
+                    }, 500);
                 } else {
                     console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
