@@ -269,13 +269,18 @@
         console.log('Önizleme oluşturuluyor:', previewCount, 'fotoğraf');
         console.log('Fotoğraf yolları:', galleryImages.slice(0, previewCount));
         
+        // Mobil cihaz kontrolü
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
         for (let i = 0; i < previewCount; i++) {
             const img = document.createElement('img');
             const webpSrc = galleryImages[i];
             
             // Tüm olası formatları dene
             const baseName = webpSrc.replace(/\.webp$/i, '');
-            const allFormats = [
+            
+            // Mobilde önce JPEG'leri dene (WebP desteği sınırlı), desktop'ta WebP'yi de dene
+            const allFormats = isMobile ? [
                 baseName + '.jpg',
                 baseName + '.jpeg',
                 baseName + '.JPG',
@@ -283,9 +288,17 @@
                 baseName + '.Jpg',
                 baseName + '.Jpeg',
                 webpSrc // WebP'yi en son dene
+            ] : [
+                baseName + '.jpg',
+                baseName + '.jpeg',
+                baseName + '.JPG',
+                baseName + '.JPEG',
+                baseName + '.Jpg',
+                baseName + '.Jpeg',
+                webpSrc
             ];
             
-            console.log(`[${i}] Tüm formatlar:`, allFormats);
+            console.log(`[${i}] Mobil: ${isMobile}, Tüm formatlar:`, allFormats);
             
             img.alt = `Fotoğraf ${i + 1}`;
             img.loading = i === 0 ? 'eager' : 'lazy';
@@ -298,13 +311,28 @@
             
             // Basit ve güvenilir fallback: Tüm formatları sırayla dene
             let currentFormatIndex = 0;
+            let loadTimeout = null;
             
             function tryNextFormat() {
+                // Önceki timeout'u temizle
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
+                
                 if (currentFormatIndex < allFormats.length) {
                     const nextSrc = allFormats[currentFormatIndex];
                     console.log(`[${i}] Format deneniyor (${currentFormatIndex + 1}/${allFormats.length}):`, nextSrc);
                     img.src = nextSrc;
                     currentFormatIndex++;
+                    
+                    // Mobilde timeout ekle (5 saniye)
+                    if (isMobile) {
+                        loadTimeout = setTimeout(() => {
+                            console.warn(`[${i}] Timeout:`, nextSrc);
+                            tryNextFormat();
+                        }, 5000);
+                    }
                 } else {
                     console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
                     img.style.backgroundColor = 'rgba(255,34,68,0.1)';
@@ -314,11 +342,19 @@
             
             img.onerror = function() {
                 console.error(`[${i}] Yüklenemedi:`, this.src);
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
                 tryNextFormat();
             };
             
             img.onload = function() {
                 console.log(`[${i}] ✓ Fotoğraf yüklendi:`, this.src, 'Boyut:', this.naturalWidth + 'x' + this.naturalHeight);
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
             };
             
             // İlk formatı dene
@@ -363,6 +399,9 @@
         
         galleryContent.innerHTML = '';
         
+        // Mobil cihaz kontrolü
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
         galleryData.forEach((photo, index) => {
             const item = document.createElement('div');
             item.className = 'gallery-modal__item';
@@ -372,7 +411,9 @@
             
             // Tüm olası formatları dene
             const baseName = webpSrc.replace(/\.webp$/i, '');
-            const allFormats = [
+            
+            // Mobilde önce JPEG'leri dene (WebP desteği sınırlı)
+            const allFormats = isMobile ? [
                 baseName + '.jpg',
                 baseName + '.jpeg',
                 baseName + '.JPG',
@@ -380,6 +421,14 @@
                 baseName + '.Jpg',
                 baseName + '.Jpeg',
                 webpSrc // WebP'yi en son dene
+            ] : [
+                baseName + '.jpg',
+                baseName + '.jpeg',
+                baseName + '.JPG',
+                baseName + '.JPEG',
+                baseName + '.Jpg',
+                baseName + '.Jpeg',
+                webpSrc
             ];
             
             img.alt = `Fotoğraf ${index + 1}`;
@@ -389,11 +438,25 @@
             
             // Basit ve güvenilir fallback: Tüm formatları sırayla dene
             let currentFormatIndex = 0;
+            let loadTimeout = null;
             
             function tryNextFormat() {
+                // Önceki timeout'u temizle
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
+                
                 if (currentFormatIndex < allFormats.length) {
                     img.src = allFormats[currentFormatIndex];
                     currentFormatIndex++;
+                    
+                    // Mobilde timeout ekle (5 saniye)
+                    if (isMobile) {
+                        loadTimeout = setTimeout(() => {
+                            tryNextFormat();
+                        }, 5000);
+                    }
                 } else {
                     console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
@@ -401,7 +464,18 @@
             }
             
             img.onerror = function() {
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
                 tryNextFormat();
+            };
+            
+            img.onload = function() {
+                if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    loadTimeout = null;
+                }
             };
             
             // İlk formatı dene
@@ -448,12 +522,17 @@
         const photo = galleryData[currentPhotoIndex];
         photoViewerImage.innerHTML = '';
         
+        // Mobil cihaz kontrolü
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
         const img = document.createElement('img');
         const webpSrc = photo.filename;
         
         // Tüm olası formatları dene
         const baseName = webpSrc.replace(/\.webp$/i, '');
-        const allFormats = [
+        
+        // Mobilde önce JPEG'leri dene (WebP desteği sınırlı)
+        const allFormats = isMobile ? [
             baseName + '.jpg',
             baseName + '.jpeg',
             baseName + '.JPG',
@@ -461,6 +540,14 @@
             baseName + '.Jpg',
             baseName + '.Jpeg',
             webpSrc // WebP'yi en son dene
+        ] : [
+            baseName + '.jpg',
+            baseName + '.jpeg',
+            baseName + '.JPG',
+            baseName + '.JPEG',
+            baseName + '.Jpg',
+            baseName + '.Jpeg',
+            webpSrc
         ];
         
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
@@ -470,12 +557,27 @@
         
         // Basit ve güvenilir fallback: Tüm formatları sırayla dene
         let currentFormatIndex = 0;
+        let loadTimeout = null;
         
         function tryNextFormat() {
+            // Önceki timeout'u temizle
+            if (loadTimeout) {
+                clearTimeout(loadTimeout);
+                loadTimeout = null;
+            }
+            
             if (currentFormatIndex < allFormats.length) {
                 console.log('Format deneniyor:', allFormats[currentFormatIndex]);
                 img.src = allFormats[currentFormatIndex];
                 currentFormatIndex++;
+                
+                // Mobilde timeout ekle (5 saniye)
+                if (isMobile) {
+                    loadTimeout = setTimeout(() => {
+                        console.warn('Timeout:', allFormats[currentFormatIndex - 1]);
+                        tryNextFormat();
+                    }, 5000);
+                }
             } else {
                 console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
             }
@@ -483,7 +585,18 @@
         
         img.onerror = function() {
             console.error('Yüklenemedi:', this.src);
+            if (loadTimeout) {
+                clearTimeout(loadTimeout);
+                loadTimeout = null;
+            }
             tryNextFormat();
+        };
+        
+        img.onload = function() {
+            if (loadTimeout) {
+                clearTimeout(loadTimeout);
+                loadTimeout = null;
+            }
         };
         
         // İlk formatı dene
