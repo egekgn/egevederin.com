@@ -326,11 +326,11 @@
                     img.src = nextSrc;
                     currentFormatIndex++;
                     
-                    // Timeout ekle (300ms - çok hızlı fallback)
+                    // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
                     loadTimeout = setTimeout(() => {
-                        console.warn(`[${i}] Timeout (300ms):`, nextSrc);
+                        console.warn(`[${i}] Timeout (50ms):`, nextSrc);
                         tryNextFormat();
-                    }, 300);
+                    }, 50);
                 } else {
                     console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
                     img.style.backgroundColor = 'rgba(255,34,68,0.1)';
@@ -484,10 +484,10 @@
                     img.src = allFormats[currentFormatIndex];
                     currentFormatIndex++;
                     
-                    // Timeout ekle (500ms - çok hızlı fallback)
+                    // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
                     loadTimeout = setTimeout(() => {
                         tryNextFormat();
-                    }, 500);
+                    }, 50);
                 } else {
                     console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
@@ -603,11 +603,11 @@
                 img.src = allFormats[currentFormatIndex];
                 currentFormatIndex++;
                 
-                // Timeout ekle (2 saniye - daha hızlı fallback)
+                // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
                 loadTimeout = setTimeout(() => {
-                    console.warn('Timeout (2s):', allFormats[currentFormatIndex - 1]);
+                    console.warn('Timeout (50ms):', allFormats[currentFormatIndex - 1]);
                     tryNextFormat();
-                }, 2000);
+                }, 50);
             } else {
                 console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
             }
