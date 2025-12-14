@@ -326,11 +326,15 @@
                     img.src = nextSrc;
                     currentFormatIndex++;
                     
-                    // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
+                    // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
+                    // onerror zaten hemen tetiklenir, timeout sadece yedek
                     loadTimeout = setTimeout(() => {
-                        console.warn(`[${i}] Timeout (50ms):`, nextSrc);
-                        tryNextFormat();
-                    }, 50);
+                        // Eğer görsel henüz yüklenmeye başlamadıysa (complete false) bir sonrakini dene
+                        if (!img.complete || img.naturalWidth === 0) {
+                            console.warn(`[${i}] Timeout (200ms) - görsel yüklenmedi:`, nextSrc);
+                            tryNextFormat();
+                        }
+                    }, 200);
                 } else {
                     console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
                     img.style.backgroundColor = 'rgba(255,34,68,0.1)';
@@ -484,10 +488,13 @@
                     img.src = allFormats[currentFormatIndex];
                     currentFormatIndex++;
                     
-                    // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
+                    // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
                     loadTimeout = setTimeout(() => {
-                        tryNextFormat();
-                    }, 50);
+                        // Eğer görsel henüz yüklenmeye başlamadıysa bir sonrakini dene
+                        if (!img.complete || img.naturalWidth === 0) {
+                            tryNextFormat();
+                        }
+                    }, 200);
                 } else {
                     console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
                     item.style.display = 'none';
@@ -603,11 +610,14 @@
                 img.src = allFormats[currentFormatIndex];
                 currentFormatIndex++;
                 
-                // Timeout ekle (50ms - çok hızlı fallback, onerror yedek mekanizması)
+                // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
                 loadTimeout = setTimeout(() => {
-                    console.warn('Timeout (50ms):', allFormats[currentFormatIndex - 1]);
-                    tryNextFormat();
-                }, 50);
+                    // Eğer görsel henüz yüklenmeye başlamadıysa bir sonrakini dene
+                    if (!img.complete || img.naturalWidth === 0) {
+                        console.warn('Timeout (200ms) - görsel yüklenmedi:', allFormats[currentFormatIndex - 1]);
+                        tryNextFormat();
+                    }
+                }, 200);
             } else {
                 console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
             }
