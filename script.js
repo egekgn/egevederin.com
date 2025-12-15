@@ -183,106 +183,36 @@
         return `${day} ${month} ${year}`;
     }
 
-    // JSON'dan galeri verilerini yükle
-    async function loadGallery() {
-        // Önce inline data'yı kontrol et (file:// protokolü için)
-        if (window.galleryData) {
-            const data = window.galleryData;
-            if (data.photos && data.photos.length > 0) {
-                galleryData = data.photos.sort((a, b) => {
-                    return new Date(b.uploadDate) - new Date(a.uploadDate);
-                });
-                galleryImages = galleryData.map(photo => photo.filename);
-                console.log('Galeri yüklendi (inline):', galleryImages.length, 'fotoğraf');
-                renderPreview();
-                return;
-            }
-        }
-        
-        // Eğer inline data yoksa fetch ile dene
-        try {
-            const response = await fetch('gallery.json');
-            if (!response.ok) {
-                throw new Error('JSON dosyası yüklenemedi');
-            }
-            const data = await response.json();
-            
-            if (!data.photos || data.photos.length === 0) {
-                console.warn('Galeride fotoğraf yok');
-                return;
-            }
-            
-            // En son yüklenenler en üstte olacak şekilde sırala (tarihe göre azalan)
-            galleryData = data.photos.sort((a, b) => {
-                return new Date(b.uploadDate) - new Date(a.uploadDate);
-            });
-            
+    // Galeri verilerini hazırla (HTML'de zaten var, sadece data hazırla)
+    function initGallery() {
+        // Inline data'dan galeri bilgilerini al
+        if (window.galleryData && window.galleryData.photos) {
+            galleryData = window.galleryData.photos;
             galleryImages = galleryData.map(photo => photo.filename);
-            console.log('Galeri yüklendi (fetch):', galleryImages.length, 'fotoğraf');
-            renderPreview();
-        } catch (error) {
-            console.error('Galeri yüklenirken hata:', error);
-            galleryData = [];
-            galleryImages = [];
+        }
+        
+        // HTML'deki galeri modal item'larına click event ekle
+        if (galleryContent) {
+            const galleryItems = galleryContent.querySelectorAll('.gallery-modal__item');
+            galleryItems.forEach((item, index) => {
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', () => openPhotoViewer(index));
+            });
+        }
+        
+        // Preview görsellerine click event ekle
+        if (galleryPreview) {
+            const previewImages = galleryPreview.querySelectorAll('.gallery-bubble__image');
+            previewImages.forEach((container, index) => {
+                container.style.cursor = 'pointer';
+                container.addEventListener('click', () => openPhotoViewer(index));
+            });
         }
     }
 
-    // Galeri önizlemesini başlat (HTML'de hardcode edilmiş görsellere click event ekle)
-    function renderPreview() {
-        if (!galleryPreview) {
-            console.error('galleryPreview elementi bulunamadı');
-            return;
-        }
-        
-        // HTML'de hardcode edilmiş görselleri bul ve click event ekle
-        const previewImages = galleryPreview.querySelectorAll('.gallery-bubble__image');
-        previewImages.forEach((container, index) => {
-            container.style.cursor = 'pointer';
-            container.addEventListener('click', () => openPhotoViewer(index));
-        });
-        
-        console.log('Galeri önizleme hazır:', previewImages.length, 'fotoğraf');
-    }
-
-    // Galeri modal'ını aç
+    // Galeri modal'ını aç (HTML'de zaten var, sadece göster)
     function openGallery() {
-        if (!galleryModal || !galleryContent) return;
-        
-        galleryContent.innerHTML = '';
-        
-        galleryData.forEach((photo, index) => {
-            const item = document.createElement('div');
-            item.className = 'gallery-modal__item';
-            
-            const img = document.createElement('img');
-            const webpSrc = photo.filename;
-            const baseName = webpSrc.replace(/\.webp$/i, '');
-            
-            // Hardcode edilmiş URL'ler - direkt WebP kullan, fallback için onerror
-            img.src = webpSrc;
-            img.alt = `Fotoğraf ${index + 1}`;
-            img.loading = 'lazy';
-            img.decoding = 'async';
-            img.fetchPriority = index < 6 ? 'high' : 'auto';
-            
-            // Fallback: WebP yüklenemezse JPEG dene
-            img.onerror = function() {
-                if (this.src.endsWith('.webp')) {
-                    // Önce .jpg, sonra .jpeg, sonra .JPG, sonra .JPEG dene
-                    const jpegFormats = ['.jpg', '.jpeg', '.JPG', '.JPEG'];
-                    const currentFormat = jpegFormats.find(fmt => this.src.includes(fmt));
-                    if (!currentFormat) {
-                        this.src = baseName + '.jpg';
-                    }
-                }
-            };
-            
-            item.appendChild(img);
-            item.addEventListener('click', () => openPhotoViewer(index));
-            
-            galleryContent.appendChild(item);
-        });
-        
+        if (!galleryModal) return;
         galleryModal.removeAttribute('hidden');
         document.body.style.overflow = 'hidden';
     }
@@ -316,26 +246,18 @@
         if (!photoViewerImage || currentPhotoIndex < 0 || currentPhotoIndex >= galleryImages.length) return;
         
         const photo = galleryData[currentPhotoIndex];
+        if (!photo) return;
+        
         photoViewerImage.innerHTML = '';
         
-        const img = document.createElement('img');
-        const webpSrc = photo.filename;
-        const baseName = webpSrc.replace(/\.webp$/i, '');
+        // HTML'deki mevcut img elementini al veya yeni oluştur
+        const galleryItem = galleryContent.querySelector(`[data-photo-index="${currentPhotoIndex}"]`);
+        const existingImg = galleryItem ? galleryItem.querySelector('img') : null;
         
-        // Hardcode edilmiş URL - direkt WebP kullan
-        img.src = webpSrc;
-        img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
+        const img = existingImg ? existingImg.cloneNode(true) : document.createElement('img');
         img.loading = 'eager';
         img.fetchPriority = 'high';
         img.decoding = 'async';
-        
-        // Fallback: WebP yüklenemezse JPEG dene
-        img.onerror = function() {
-            const jpegSrc = baseName + '.jpg' || baseName + '.jpeg' || baseName + '.JPG' || baseName + '.JPEG';
-            if (this.src !== jpegSrc) {
-                this.src = jpegSrc;
-            }
-        };
         
         photoViewerImage.appendChild(img);
         
@@ -427,12 +349,12 @@
         });
     }
 
-    // İlk yüklemede galeriyi yükle - DOM hazır olduğunda
+    // İlk yüklemede galeriyi hazırla - DOM hazır olduğunda
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadGallery);
+        document.addEventListener('DOMContentLoaded', initGallery);
     } else {
-        // DOM zaten hazırsa hemen yükle
-        loadGallery();
+        // DOM zaten hazırsa hemen hazırla
+        initGallery();
     }
 })();
 
