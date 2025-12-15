@@ -101,38 +101,53 @@
         const card = link.closest('.post-card');
         const full = card && card.querySelector('.post-card__full');
         if (full) {
-            // Eğer todo listesi ise, direkt todo-list içeriğini göster
+            // Eğer todo listesi ise, section modal aç (yapilacaklar section'ı)
             const todoList = full.querySelector('.todo-list');
             if (todoList) {
-                // Todo listesi için özel içerik oluştur
-                const title = card.querySelector('.post-card__title')?.textContent || 'Yapılacaklar Listesi';
-                const meta = card.querySelector('.post-card__meta')?.textContent || '';
+                // Section modal'ı direkt aç
+                const sectionModal = document.querySelector('[data-section-modal]');
+                const sectionModalContent = document.querySelector('[data-section-modal-content]');
                 
-                // Todo-item'ları tek tek kopyala
-                const todoItems = todoList.querySelectorAll('.todo-item');
-                let todoItemsHTML = '';
-                
-                todoItems.forEach((item, index) => {
-                    const clonedItem = item.cloneNode(true);
-                    const checkbox = clonedItem.querySelector('input[type="checkbox"]');
-                    const label = clonedItem.querySelector('label');
-                    
-                    if (checkbox && label) {
-                        const newId = `modal-todo-${index + 1}`;
-                        checkbox.id = newId;
-                        label.setAttribute('for', newId);
+                if (sectionModal && sectionModalContent) {
+                    const yapilacaklarSection = document.getElementById('yapilacaklar');
+                    if (yapilacaklarSection) {
+                        sectionModalContent.innerHTML = '';
+                        const clonedSection = yapilacaklarSection.cloneNode(true);
+                        sectionModalContent.appendChild(clonedSection);
+                        sectionModal.removeAttribute('hidden');
+                        sectionModal.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                        sectionModal.scrollTop = 0;
                     }
+                } else {
+                    // Fallback: Eski modal açma yöntemi
+                    const title = card.querySelector('.post-card__title')?.textContent || 'Yapılacaklar Listesi';
+                    const meta = card.querySelector('.post-card__meta')?.textContent || '';
                     
-                    todoItemsHTML += clonedItem.outerHTML;
-                });
-                
-                // İçeriği oluştur
-                const todoContent = `
-                    <h2 style="margin-top: 0; color: var(--text); margin-bottom: 8px; font-weight: 800;">${title}</h2>
-                    ${meta ? `<p style="color: var(--muted); margin-bottom: 24px;">${meta}</p>` : ''}
-                    <div class="todo-list">${todoItemsHTML}</div>
-                `;
-                openModal(todoContent);
+                    const todoItems = todoList.querySelectorAll('.todo-item');
+                    let todoItemsHTML = '';
+                    
+                    todoItems.forEach((item, index) => {
+                        const clonedItem = item.cloneNode(true);
+                        const checkbox = clonedItem.querySelector('input[type="checkbox"]');
+                        const label = clonedItem.querySelector('label');
+                        
+                        if (checkbox && label) {
+                            const newId = `modal-todo-${index + 1}`;
+                            checkbox.id = newId;
+                            label.setAttribute('for', newId);
+                        }
+                        
+                        todoItemsHTML += clonedItem.outerHTML;
+                    });
+                    
+                    const todoContent = `
+                        <h2 style="margin-top: 0; color: var(--text); margin-bottom: 8px; font-weight: 800;">${title}</h2>
+                        ${meta ? `<p style="color: var(--muted); margin-bottom: 24px;">${meta}</p>` : ''}
+                        <div class="todo-list">${todoItemsHTML}</div>
+                    `;
+                    openModal(todoContent);
+                }
             } else {
                 // Normal içerik için hidden attribute'ları kaldır
                 const clonedFull = full.cloneNode(true);
@@ -507,7 +522,7 @@
             
             // Scroll'u en üste al
             sectionModal.scrollTop = 0;
-        }
+        };
         
         // Galeri linkine tıklandığında direkt modal'ı aç
         if (galleryLink) {
@@ -827,10 +842,22 @@
     const postcardClose = document.getElementById('postcard-close');
     
     if (hiddenPostcard && hiddenButton && postcardClose) {
-        // Gizli butona tıklayınca kartpostalı aç
-        hiddenButton.addEventListener('click', function() {
+        // Kartpostalı açma fonksiyonu
+        function openPostcard(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             hiddenPostcard.classList.add('open');
-        });
+        }
+        
+        // Gizli butona tıklayınca/touch ile kartpostalı aç (mobil desteği)
+        hiddenButton.addEventListener('click', openPostcard);
+        hiddenButton.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openPostcard(e);
+        }, { passive: false });
         
         // Kapat butonuna tıklayınca kapat
         postcardClose.addEventListener('click', function(e) {
@@ -838,8 +865,21 @@
             hiddenPostcard.classList.remove('open');
         });
         
+        postcardClose.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hiddenPostcard.classList.remove('open');
+        }, { passive: false });
+        
         // Çizgi dışına tıklayınca kapat
         document.addEventListener('click', function(e) {
+            if (!hiddenPostcard.contains(e.target) && hiddenPostcard.classList.contains('open')) {
+                hiddenPostcard.classList.remove('open');
+            }
+        });
+        
+        // Mobil için touch event ile dışarı tıklama
+        document.addEventListener('touchend', function(e) {
             if (!hiddenPostcard.contains(e.target) && hiddenPostcard.classList.contains('open')) {
                 hiddenPostcard.classList.remove('open');
             }
@@ -883,18 +923,48 @@
     const nextButton = document.getElementById('posts-next-btn');
     const prevButton = document.getElementById('posts-prev-btn');
     
+    // Mobil butonlar
+    const nextButtonMobile = document.getElementById('posts-next-btn-mobile');
+    const prevButtonMobile = document.getElementById('posts-prev-btn-mobile');
+    const dotsContainer = document.getElementById('posts-nav-dots');
+    const navMobile = document.getElementById('posts-nav-mobile');
+    
     if (!postsContainer || !postCards.length || !nextButton || !prevButton) return;
     
     let currentIndex = 0; // İlk 3 gönderi görünüyor (0, 1, 2)
-    const visibleCount = 3; // Her seferinde 3 gönderi göster
+    const visibleCount = window.innerWidth <= 768 ? 1 : 3; // Mobilde 1, desktop'ta 3 gönderi göster
+    
+    // Mobilde dots oluştur
+    function createDots() {
+        if (!dotsContainer || window.innerWidth > 768) return;
+        
+        dotsContainer.innerHTML = '';
+        const totalPages = Math.ceil(postCards.length / (window.innerWidth <= 768 ? 1 : 3));
+        
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'posts-nav-mobile__dot';
+            if (i === currentIndex) {
+                dot.classList.add('active');
+            }
+            dot.addEventListener('click', function() {
+                currentIndex = i;
+                updateVisiblePosts();
+            });
+            dotsContainer.appendChild(dot);
+        }
+    }
     
     // İlk durumu ayarla: İlk 3 gönderi görünür
     function updateVisiblePosts() {
+        const isMobile = window.innerWidth <= 768;
+        const count = isMobile ? 1 : 3;
+        
         postCards.forEach((card, index) => {
             const cardIndex = parseInt(card.getAttribute('data-post-index'));
             
-            // İlk 3 gönderi görünür (0, 1, 2)
-            if (cardIndex >= currentIndex && cardIndex < currentIndex + visibleCount) {
+            // Görünür gönderileri ayarla
+            if (cardIndex >= currentIndex && cardIndex < currentIndex + count) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
@@ -903,43 +973,84 @@
         
         // Buton görünürlüğünü ayarla
         const totalPosts = postCards.length;
+        const maxIndex = totalPosts - count;
         
-        // Geri butonu: İlk gönderilerdeyse gizle
+        // Desktop butonları
         if (currentIndex === 0) {
             prevButton.style.display = 'none';
         } else {
             prevButton.style.display = 'flex';
         }
         
-        // İleri butonu: Son gönderilere ulaştıysak gizle
-        if (currentIndex + visibleCount >= totalPosts) {
+        if (currentIndex >= maxIndex) {
             nextButton.style.display = 'none';
         } else {
             nextButton.style.display = 'flex';
         }
+        
+        // Mobil butonları
+        if (prevButtonMobile && nextButtonMobile) {
+            prevButtonMobile.disabled = currentIndex === 0;
+            nextButtonMobile.disabled = currentIndex >= maxIndex;
+        }
+        
+        // Dots güncelle
+        if (dotsContainer && isMobile) {
+            const dots = dotsContainer.querySelectorAll('.posts-nav-mobile__dot');
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
     }
     
-    // İleri butonuna tıklama
-    nextButton.addEventListener('click', function() {
+    // Navigate fonksiyonu
+    function goNext() {
+        const isMobile = window.innerWidth <= 768;
+        const count = isMobile ? 1 : 3;
         const totalPosts = postCards.length;
+        const maxIndex = totalPosts - count;
         
-        // Bir sonraki set'e geç (ilk gönderi kaybolur, sonraki 3 gösterilir)
-        if (currentIndex + visibleCount < totalPosts) {
+        if (currentIndex < maxIndex) {
             currentIndex++;
             updateVisiblePosts();
         }
-    });
+    }
     
-    // Geri butonuna tıklama
-    prevButton.addEventListener('click', function() {
-        // Bir önceki set'e dön (son gönderi kaybolur, önceki 3 gösterilir)
+    function goPrev() {
         if (currentIndex > 0) {
             currentIndex--;
             updateVisiblePosts();
         }
+    }
+    
+    // Desktop butonları
+    nextButton.addEventListener('click', goNext);
+    prevButton.addEventListener('click', goPrev);
+    
+    // Mobil butonları
+    if (nextButtonMobile) {
+        nextButtonMobile.addEventListener('click', goNext);
+    }
+    if (prevButtonMobile) {
+        prevButtonMobile.addEventListener('click', goPrev);
+    }
+    
+    // Window resize için dots'ları yeniden oluştur
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            createDots();
+            updateVisiblePosts();
+        }, 250);
     });
     
     // İlk durumu ayarla
+    createDots();
     updateVisiblePosts();
 })();
 
