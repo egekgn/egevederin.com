@@ -1432,7 +1432,7 @@ body::after {
         width: 280px;
         height: 100vh;
         background: linear-gradient(180deg, rgba(5,7,10,0.98), rgba(11,15,20,0.98));
-        backdrop-filter: blur(10px);
+        /* backdrop-filter kaldırıldı - sayfayı bulanıklaştırmasın */
         border-left: 2px solid rgba(255,34,68,0.5);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
         flex-direction: column;
@@ -1478,7 +1478,7 @@ body::after {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
+        /* backdrop-filter kaldırıldı - sayfayı bulanıklaştırmasın */
         z-index: 1000; /* Menüden alt, ama diğer içerikten üst */
         pointer-events: auto; /* Tıklanabilir olmalı */
     }
@@ -1822,14 +1822,27 @@ body::after {
     }
     
     .hidden-postcard.open .postcard-content {
-        width: calc(100vw - 20px);
+        /* Mobilde hamburger menüye kadar uzanmasın */
+        width: calc(100vw - 80px); /* Hamburger menü için boşluk bırak */
+        max-width: 300px; /* Maksimum genişlik sınırı */
         padding: 0 20px;
+        /* Mobilde iki katmanlı görünmesini önlemek için */
+        position: relative;
+        z-index: 1004;
+        /* Mobilde backdrop-filter'ı kaldır veya azalt */
+        backdrop-filter: none;
+        background: var(--bg);
     }
     
     /* Mobilde gizli not açıkken X butonunu hamburger menüden uzak tut */
     .hidden-postcard.open .postcard__close {
         right: 50px; /* Hamburger menü ikonundan uzak */
-        z-index: 1003; /* Hamburger menüden üstte */
+        z-index: 1005; /* En üstte olmalı */
+    }
+    
+    /* Mobilde gizli not kartpostalının iki katmanlı görünmesini önle */
+    .hidden-postcard {
+        z-index: 1004; /* Header içinde en üstte */
     }
     
     .postcard__message {
