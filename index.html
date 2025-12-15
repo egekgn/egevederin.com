@@ -24,18 +24,17 @@
 <body>
     <canvas id="matrix-canvas" aria-hidden="true"></canvas>
 
-    <!-- Gizli Buton ve Kartpostal (Sol Üst Köşe) -->
-    <div class="hidden-postcard" id="hidden-postcard">
-        <button class="hidden-button" id="hidden-button" aria-label="Gizli buton" title=""></button>
-        <div class="postcard-content" id="postcard-content">
-            <button class="postcard__close" id="postcard-close" aria-label="Kapat">✕</button>
-            <div class="postcard__message-wrapper">
-                <p class="postcard__message">seni seviyorum kıvırcığım</p>
+    <header class="site-header">
+        <!-- Gizli Buton ve Kartpostal (Sol Üst Köşe) -->
+        <div class="hidden-postcard" id="hidden-postcard">
+            <button class="hidden-button" id="hidden-button" aria-label="Gizli buton" title=""></button>
+            <div class="postcard-content" id="postcard-content">
+                <button class="postcard__close" id="postcard-close" aria-label="Kapat">✕</button>
+                <div class="postcard__message-wrapper">
+                    <p class="postcard__message">seni seviyorum kıvırcığım</p>
+                </div>
             </div>
         </div>
-    </div>
-
-    <header class="site-header">
         <div class="brand">
             <span class="brand__logo">></span>
             <span class="brand__text">Hayatımın aşkı Derin'e</span>
@@ -46,6 +45,7 @@
             <a href="#yapilacaklar">Yapılacaklar</a>
             <a href="#galeri">Galeri</a>
             <a href="#sarkimiz">Şarkımız</a>
+            <a href="#notlar">Notlar</a>
         </nav>
     </header>
 
@@ -263,6 +263,37 @@
                 </div>
             </div>
         </section>
+
+        <section id="notlar" class="notes-section">
+            <div class="panel">
+                <h3>Notlar</h3>
+                <div class="notes-container">
+                    <article class="note-card">
+                        <h4 class="note-card__title">EGE</h4>
+                        <div class="note-card__content">
+                            <p class="note-card__excerpt">Buraya Ege'nin notlarını yazabilirsiniz. İçerik ne kadar uzun olursa olsun, kutucuk maksimum yüksekliğe ulaştığında "Devamını oku" linki görünecek.</p>
+                        </div>
+                        <a class="note-card__link" href="#">Devamını oku →</a>
+                        <div class="note-card__full" hidden>
+                            <p>Buraya Ege'nin tam notlarını yazabilirsiniz. Bu içerik "Devamını oku" linkine tıklandığında modal'da görünecek.</p>
+                            <p>İstediğiniz kadar paragraf ekleyebilirsiniz.</p>
+                        </div>
+                    </article>
+
+                    <article class="note-card">
+                        <h4 class="note-card__title">DERİN</h4>
+                        <div class="note-card__content">
+                            <p class="note-card__excerpt">Buraya Derin'in notlarını yazabilirsiniz. İçerik ne kadar uzun olursa olsun, kutucuk maksimum yüksekliğe ulaştığında "Devamını oku" linki görünecek.</p>
+                        </div>
+                        <a class="note-card__link" href="#">Devamını oku →</a>
+                        <div class="note-card__full" hidden>
+                            <p>Buraya Derin'in tam notlarını yazabilirsiniz. Bu içerik "Devamını oku" linkine tıklandığında modal'da görünecek.</p>
+                            <p>İstediğiniz kadar paragraf ekleyebilirsiniz.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="site-footer">
@@ -270,7 +301,7 @@
         <span class="dot">•</span>
         <span>Ege Kağan Danacı</span>
         <span class="dot">&</span>
-        <span>Derin Su Danacı</span>
+        <span>Derin Su Erol Danacı</span>
         <span class="dot">•</span>
         <span>2016'dan beri birbirine aşık çift</span>
     </footer>
