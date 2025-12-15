@@ -169,6 +169,11 @@ body {
     filter: drop-shadow(0 0 8px var(--primary));
 }
 
+/* Mobil navigasyon kontrolleri - sadece mobilde göster */
+.posts-nav-mobile {
+    display: none;
+}
+
 /* Post card visibility transitions */
 .post-card {
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -318,7 +323,7 @@ body::after {
     backdrop-filter: blur(6px);
     display: grid;
     place-items: center;
-    z-index: 50;
+    z-index: 9999;
 }
 .modal {
     width: min(920px, calc(100% - 28px));
@@ -330,6 +335,7 @@ body::after {
     box-shadow: 0 0 36px rgba(255,34,68,0.42), 0 0 84px rgba(255,136,153,0.28);
     position: relative;
     padding: 22px;
+    z-index: 10000;
 }
 .modal::before {
     content: "";
@@ -620,10 +626,9 @@ body::after {
     justify-content: center !important;
     visibility: visible !important;
     opacity: 1 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    background: rgba(255,34,68,0.15) !important;
+    border: 1px solid rgba(255,34,68,0.4) !important;
+    border-radius: 50% !important;
     position: absolute !important;
     left: calc(50% - 80px) !important;
     top: 50% !important;
@@ -634,25 +639,26 @@ body::after {
     color: var(--primary) !important;
     padding: 0 !important;
     margin: 0 !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
 }
 
-.music-player__btn--restart .restart-icon {
-    width: 32px !important;
-    height: 32px !important;
-    object-fit: contain;
+.music-player__btn--restart svg {
+    width: 20px !important;
+    height: 20px !important;
     display: block;
-    /* Neon kırmızı renk için filter */
-    filter: brightness(0) saturate(100%) invert(14%) sepia(93%) saturate(7470%) hue-rotate(330deg) brightness(100%) contrast(100%);
-    /* Görsel yüklenemezse fallback */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
 }
 
 .music-player__btn--restart:hover {
-    background: transparent !important;
-    border: none !important;
+    background: rgba(255,34,68,0.25) !important;
+    border-color: rgba(255,34,68,0.6) !important;
     color: var(--primary) !important;
-    transform: scale(1.1);
+    transform: translate(-50%, -50%) scale(1.05) !important;
+    box-shadow: 0 0 20px rgba(255,34,68,0.4) !important;
+}
+
+.music-player__btn--restart:active {
+    transform: translate(-50%, -50%) scale(0.95) !important;
 }
 
 .music-player__btn--repeat {
@@ -1117,6 +1123,12 @@ body::after {
     flex-shrink: 0;
     position: relative;
     z-index: 2;
+    pointer-events: auto;
+    touch-action: manipulation;
+    /* Mobilde dokunulabilir alanı genişletmek için görünmez padding */
+    padding: 0;
+    margin: 0;
+    min-width: 3px;
 }
 
 .hidden-button:hover {
@@ -1276,19 +1288,75 @@ body::after {
         min-height: 44px; /* Dokunulabilir boyut */
     }
     
-    /* Posts navigation buttons mobil - gizle veya farklı konumlandır */
+    /* Posts navigation buttons mobil - gizle */
     .posts-nav-button {
+        display: none !important;
+    }
+    
+    /* Modern mobil navigasyon kontrolleri */
+    .posts-nav-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 24px;
+        padding: 12px 0;
+    }
+    
+    .posts-nav-mobile__btn {
         width: 44px;
         height: 44px;
-        min-height: 44px; /* Dokunulabilir boyut */
+        min-width: 44px;
+        min-height: 44px;
+        background: rgba(255, 34, 68, 0.15);
+        border: 1px solid rgba(255, 34, 68, 0.4);
+        border-radius: 50%;
+        color: var(--primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
     }
     
-    .posts-nav-button--prev {
-        left: 10px;
+    .posts-nav-mobile__btn:active {
+        transform: scale(0.95);
+        background: rgba(255, 34, 68, 0.25);
     }
     
-    .posts-nav-button--next {
-        right: 10px;
+    .posts-nav-mobile__btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .posts-nav-mobile__dots {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    .posts-nav-mobile__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 34, 68, 0.3);
+        border: 1px solid rgba(255, 34, 68, 0.4);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    
+    .posts-nav-mobile__dot.active {
+        width: 24px;
+        border-radius: 4px;
+        background: var(--primary);
+        border-color: var(--primary);
+        box-shadow: 0 0 12px rgba(255, 34, 68, 0.6);
     }
     
     /* Posts container mobilde tek sütun */
@@ -1453,14 +1521,40 @@ body::after {
     .hidden-postcard {
         height: auto;
         min-height: 50px;
+        /* Mobilde tıklanabilir alanı genişletmek için padding ekle */
+        padding-left: 20px;
+        margin-left: -20px;
     }
     
     .hidden-button {
         width: 4px;
+        /* Mobilde dokunulabilir alanı genişletmek için butonu genişlet ama görsel aynı kalsın */
+        min-width: 20px;
+        position: relative;
     }
     
-    .hidden-button:hover {
+    /* Görsel genişliği korumak için background'u sadece sol tarafta göster */
+    .hidden-button::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: rgba(255,34,68,0.3);
+        border-right: 1px solid rgba(255,34,68,0.2);
+        pointer-events: none;
+    }
+    
+    .hidden-button:hover::before,
+    .hidden-button:active::before {
         width: 6px;
+        background: rgba(255,34,68,0.8);
+    }
+    
+    .hidden-button:hover,
+    .hidden-button:active {
+        background: transparent;
     }
     
     .postcard-content {
