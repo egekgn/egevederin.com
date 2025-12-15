@@ -524,14 +524,27 @@
     const mainNav = document.getElementById('main-nav');
     const navOverlay = document.createElement('div');
     navOverlay.className = 'nav-overlay';
-    document.body.appendChild(navOverlay);
+    // Overlay'i menüden ÖNCE DOM'a ekle (z-index hiyerarşisi için önemli)
+    // Menü DOM'da overlay'den SONRA olmalı ki z-index ile üstte görünsün
+    if (mainNav && mainNav.parentNode) {
+        mainNav.parentNode.insertBefore(navOverlay, mainNav);
+    } else {
+        document.body.insertBefore(navOverlay, document.body.firstChild);
+    }
     
     function toggleNav() {
         if (navToggle && mainNav) {
+            const isOpening = !mainNav.classList.contains('active');
             navToggle.classList.toggle('active');
             mainNav.classList.toggle('active');
             navOverlay.classList.toggle('active');
             document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
+            // Menü açıkken body'ye class ekle (ana içeriği tıklanamaz yapmak için)
+            if (isOpening) {
+                document.body.classList.add('menu-open');
+            } else {
+                document.body.classList.remove('menu-open');
+            }
         }
     }
     
@@ -541,6 +554,7 @@
             mainNav.classList.remove('active');
             navOverlay.classList.remove('active');
             document.body.style.overflow = '';
+            document.body.classList.remove('menu-open');
         }
     }
     
