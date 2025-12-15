@@ -227,188 +227,21 @@
         }
     }
 
-    // Galeri önizlemesini oluştur (ilk 3 fotoğraf)
+    // Galeri önizlemesini başlat (HTML'de hardcode edilmiş görsellere click event ekle)
     function renderPreview() {
-        console.log('renderPreview çağrıldı');
-        console.log('galleryPreview:', galleryPreview);
-        console.log('galleryImages.length:', galleryImages.length);
-        
         if (!galleryPreview) {
             console.error('galleryPreview elementi bulunamadı');
-            // Tekrar dene
-            const retry = document.querySelector('[data-gallery-preview]');
-            if (retry) {
-                console.log('galleryPreview tekrar bulundu:', retry);
-                galleryPreview = retry;
-            } else {
-                console.error('galleryPreview hiç bulunamadı!');
-                return;
-            }
-        }
-        
-        if (galleryImages.length === 0) {
-            console.warn('Galeride fotoğraf yok, önizleme oluşturulamıyor');
             return;
         }
         
-        // Container'ı görünür yap
-        if (galleryPreview.parentElement) {
-            galleryPreview.parentElement.style.display = 'flex';
-            galleryPreview.parentElement.style.visibility = 'visible';
-            console.log('Parent element görünür yapıldı:', galleryPreview.parentElement);
-        }
-        galleryPreview.style.display = 'flex';
-        galleryPreview.style.visibility = 'visible';
-        galleryPreview.style.opacity = '1';
-        galleryPreview.style.width = '100%';
-        console.log('galleryPreview stilleri ayarlandı');
-        
-        galleryPreview.innerHTML = '';
-        const previewCount = Math.min(3, galleryImages.length);
-        
-        console.log('Önizleme oluşturuluyor:', previewCount, 'fotoğraf');
-        console.log('Fotoğraf yolları:', galleryImages.slice(0, previewCount));
-        
-        // Mobil cihaz kontrolü
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        for (let i = 0; i < previewCount; i++) {
-            const img = document.createElement('img');
-            const webpSrc = galleryImages[i];
-            
-            // Tüm olası formatları dene
-            const baseName = webpSrc.replace(/\.webp$/i, '');
-            
-            // Mobilde önce JPEG'leri dene (WebP desteği sınırlı), desktop'ta WebP'yi de dene
-            const allFormats = isMobile ? [
-                baseName + '.jpg',
-                baseName + '.jpeg',
-                baseName + '.JPG',
-                baseName + '.JPEG',
-                baseName + '.Jpg',
-                baseName + '.Jpeg',
-                webpSrc // WebP'yi en son dene
-            ] : [
-                baseName + '.jpg',
-                baseName + '.jpeg',
-                baseName + '.JPG',
-                baseName + '.JPEG',
-                baseName + '.Jpg',
-                baseName + '.Jpeg',
-                webpSrc
-            ];
-            
-            console.log(`[${i}] Mobil: ${isMobile}, Tüm formatlar:`, allFormats);
-            
-            img.alt = `Fotoğraf ${i + 1}`;
-            img.loading = i === 0 ? 'eager' : 'lazy';
-            img.fetchPriority = i === 0 ? 'high' : 'auto';
-            img.decoding = 'async';
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'cover';
-            img.style.display = 'block';
-            
-            // Basit ve güvenilir fallback: Tüm formatları sırayla dene
-            let currentFormatIndex = 0;
-            let loadTimeout = null;
-            
-            function tryNextFormat() {
-                // Önceki timeout'u temizle
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
-                }
-                
-                if (currentFormatIndex < allFormats.length) {
-                    const nextSrc = allFormats[currentFormatIndex];
-                    console.log(`[${i}] Format deneniyor (${currentFormatIndex + 1}/${allFormats.length}):`, nextSrc);
-                    img.src = nextSrc;
-                    currentFormatIndex++;
-                    
-                    // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
-                    // onerror zaten hemen tetiklenir, timeout sadece yedek
-                    loadTimeout = setTimeout(() => {
-                        // Eğer görsel henüz yüklenmeye başlamadıysa (complete false) bir sonrakini dene
-                        if (!img.complete || img.naturalWidth === 0) {
-                            console.warn(`[${i}] Timeout (200ms) - görsel yüklenmedi:`, nextSrc);
-                            tryNextFormat();
-                        }
-                    }, 200);
-                } else {
-                    console.error(`[${i}] Tüm formatlar denendi, yüklenemedi`);
-                    img.style.backgroundColor = 'rgba(255,34,68,0.1)';
-                    img.style.border = '2px dashed rgba(255,34,68,0.3)';
-                }
-            }
-            
-            img.onerror = function() {
-                console.error(`[${i}] Yüklenemedi:`, this.src);
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
-                }
-                // Hemen bir sonraki formatı dene (timeout beklemeden)
-                tryNextFormat();
-            };
-            
-            img.onload = function() {
-                console.log(`[${i}] ✓ Fotoğraf yüklendi:`, this.src, 'Boyut:', this.naturalWidth + 'x' + this.naturalHeight);
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
-                }
-            };
-            
-            // İlk formatı dene
-            tryNextFormat();
-            
-            const container = document.createElement('div');
-            container.className = 'gallery-bubble__image';
-            container.style.display = 'flex';
-            container.style.visibility = 'visible';
-            container.style.opacity = '1';
-            container.style.flex = '1';
-            container.style.minWidth = '0';
-            container.style.aspectRatio = '1';
-            container.style.borderRadius = '10px';
-            container.style.overflow = 'hidden';
-            container.style.border = '1px solid rgba(255,34,68,0.3)';
+        // HTML'de hardcode edilmiş görselleri bul ve click event ekle
+        const previewImages = galleryPreview.querySelectorAll('.gallery-bubble__image');
+        previewImages.forEach((container, index) => {
             container.style.cursor = 'pointer';
-            container.style.background = 'var(--bg-elev)';
-            container.style.minHeight = '150px';
-            container.appendChild(img);
-            container.addEventListener('click', () => openPhotoViewer(i));
-            
-            galleryPreview.appendChild(container);
-            console.log(`[${i}] Container eklendi, toplam container sayısı:`, galleryPreview.children.length);
-        }
+            container.addEventListener('click', () => openPhotoViewer(index));
+        });
         
-        console.log('Galeri önizleme render tamamlandı. Toplam container:', galleryPreview.children.length);
-        
-        // TÜM fotoğrafları preload et (performans için)
-        // Mobilde JPEG, desktop'ta WebP preload et
-        console.log('Tüm fotoğraflar preload ediliyor...');
-        
-        for (let i = 0; i < galleryImages.length; i++) {
-            const webpSrc = galleryImages[i];
-            const baseName = webpSrc.replace(/\.webp$/i, '');
-            
-            // Mobilde önce JPEG preload et, desktop'ta WebP
-            const preloadSrc = isMobile ? (baseName + '.jpg') : webpSrc;
-            
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = 'image';
-            link.href = preloadSrc;
-            link.fetchPriority = i < 3 ? 'high' : 'auto'; // İlk 3 yüksek öncelik
-            document.head.appendChild(link);
-            
-            if (i < 5) { // İlk 5'i logla
-                console.log(`Preload eklendi [${i}]:`, preloadSrc);
-            }
-        }
-        console.log(`Toplam ${galleryImages.length} fotoğraf preload edildi`);
+        console.log('Galeri önizleme hazır:', previewImages.length, 'fotoğraf');
     }
 
     // Galeri modal'ını aç
@@ -417,108 +250,32 @@
         
         galleryContent.innerHTML = '';
         
-        // Mobil cihaz kontrolü
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
-        // Tüm fotoğrafları preload et (modal açıldığında - hızlı yükleme için)
-        console.log('Galeri modal açıldı - tüm fotoğraflar preload ediliyor...');
-        for (let i = 0; i < galleryImages.length; i++) {
-            const webpSrc = galleryImages[i];
-            const baseName = webpSrc.replace(/\.webp$/i, '');
-            const preloadSrc = isMobile ? (baseName + '.jpg') : webpSrc;
-            
-            // Zaten preload edilmiş olabilir, kontrol et
-            const existingPreload = document.querySelector(`link[rel="preload"][href="${preloadSrc}"]`);
-            if (!existingPreload) {
-                const link = document.createElement('link');
-                link.rel = 'preload';
-                link.as = 'image';
-                link.href = preloadSrc;
-                link.fetchPriority = 'high';
-                document.head.appendChild(link);
-            }
-        }
-        
         galleryData.forEach((photo, index) => {
             const item = document.createElement('div');
             item.className = 'gallery-modal__item';
             
             const img = document.createElement('img');
             const webpSrc = photo.filename;
-            
-            // Tüm olası formatları dene
             const baseName = webpSrc.replace(/\.webp$/i, '');
             
-            // Mobilde önce JPEG'leri dene (WebP desteği sınırlı)
-            const allFormats = isMobile ? [
-                baseName + '.jpg',
-                baseName + '.jpeg',
-                baseName + '.JPG',
-                baseName + '.JPEG',
-                baseName + '.Jpg',
-                baseName + '.Jpeg',
-                webpSrc // WebP'yi en son dene
-            ] : [
-                baseName + '.jpg',
-                baseName + '.jpeg',
-                baseName + '.JPG',
-                baseName + '.JPEG',
-                baseName + '.Jpg',
-                baseName + '.Jpeg',
-                webpSrc
-            ];
-            
+            // Hardcode edilmiş URL'ler - direkt WebP kullan, fallback için onerror
+            img.src = webpSrc;
             img.alt = `Fotoğraf ${index + 1}`;
             img.loading = 'lazy';
             img.decoding = 'async';
-            img.fetchPriority = index < 6 ? 'high' : 'auto'; // İlk 6 fotoğraf için yüksek öncelik
+            img.fetchPriority = index < 6 ? 'high' : 'auto';
             
-            // Basit ve güvenilir fallback: Tüm formatları sırayla dene
-            let currentFormatIndex = 0;
-            let loadTimeout = null;
-            
-            function tryNextFormat() {
-                // Önceki timeout'u temizle
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
-                }
-                
-                if (currentFormatIndex < allFormats.length) {
-                    img.src = allFormats[currentFormatIndex];
-                    currentFormatIndex++;
-                    
-                    // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
-                    loadTimeout = setTimeout(() => {
-                        // Eğer görsel henüz yüklenmeye başlamadıysa bir sonrakini dene
-                        if (!img.complete || img.naturalWidth === 0) {
-                            tryNextFormat();
-                        }
-                    }, 200);
-                } else {
-                    console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
-                    item.style.display = 'none';
-                }
-            }
-            
+            // Fallback: WebP yüklenemezse JPEG dene
             img.onerror = function() {
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
-                }
-                // Hemen bir sonraki formatı dene (timeout beklemeden)
-                tryNextFormat();
-            };
-            
-            img.onload = function() {
-                if (loadTimeout) {
-                    clearTimeout(loadTimeout);
-                    loadTimeout = null;
+                if (this.src.endsWith('.webp')) {
+                    // Önce .jpg, sonra .jpeg, sonra .JPG, sonra .JPEG dene
+                    const jpegFormats = ['.jpg', '.jpeg', '.JPG', '.JPEG'];
+                    const currentFormat = jpegFormats.find(fmt => this.src.includes(fmt));
+                    if (!currentFormat) {
+                        this.src = baseName + '.jpg';
+                    }
                 }
             };
-            
-            // İlk formatı dene
-            tryNextFormat();
             
             item.appendChild(img);
             item.addEventListener('click', () => openPhotoViewer(index));
@@ -561,87 +318,24 @@
         const photo = galleryData[currentPhotoIndex];
         photoViewerImage.innerHTML = '';
         
-        // Mobil cihaz kontrolü
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        
         const img = document.createElement('img');
         const webpSrc = photo.filename;
-        
-        // Tüm olası formatları dene
         const baseName = webpSrc.replace(/\.webp$/i, '');
         
-        // Mobilde önce JPEG'leri dene (WebP desteği sınırlı)
-        const allFormats = isMobile ? [
-            baseName + '.jpg',
-            baseName + '.jpeg',
-            baseName + '.JPG',
-            baseName + '.JPEG',
-            baseName + '.Jpg',
-            baseName + '.Jpeg',
-            webpSrc // WebP'yi en son dene
-        ] : [
-            baseName + '.jpg',
-            baseName + '.jpeg',
-            baseName + '.JPG',
-            baseName + '.JPEG',
-            baseName + '.Jpg',
-            baseName + '.Jpeg',
-            webpSrc
-        ];
-        
+        // Hardcode edilmiş URL - direkt WebP kullan
+        img.src = webpSrc;
         img.alt = `Fotoğraf ${currentPhotoIndex + 1}`;
-        img.loading = 'eager'; // Fotoğraf görüntüleyicide eager loading
+        img.loading = 'eager';
         img.fetchPriority = 'high';
         img.decoding = 'async';
         
-        // Basit ve güvenilir fallback: Tüm formatları sırayla dene
-        let currentFormatIndex = 0;
-        let loadTimeout = null;
-        
-        function tryNextFormat() {
-            // Önceki timeout'u temizle
-            if (loadTimeout) {
-                clearTimeout(loadTimeout);
-                loadTimeout = null;
-            }
-            
-            if (currentFormatIndex < allFormats.length) {
-                console.log('Format deneniyor:', allFormats[currentFormatIndex]);
-                img.src = allFormats[currentFormatIndex];
-                currentFormatIndex++;
-                
-                // Timeout ekle (200ms - görsel yüklenmeye başlaması için yeterli süre)
-                loadTimeout = setTimeout(() => {
-                    // Eğer görsel henüz yüklenmeye başlamadıysa bir sonrakini dene
-                    if (!img.complete || img.naturalWidth === 0) {
-                        console.warn('Timeout (200ms) - görsel yüklenmedi:', allFormats[currentFormatIndex - 1]);
-                        tryNextFormat();
-                    }
-                }, 200);
-            } else {
-                console.error('Fotoğraf yüklenemedi (tüm formatlar denendi):', webpSrc);
-            }
-        }
-        
+        // Fallback: WebP yüklenemezse JPEG dene
         img.onerror = function() {
-            console.error('Yüklenemedi:', this.src);
-            if (loadTimeout) {
-                clearTimeout(loadTimeout);
-                loadTimeout = null;
-            }
-            // Hemen bir sonraki formatı dene (timeout beklemeden)
-            tryNextFormat();
-        };
-        
-        img.onload = function() {
-            if (loadTimeout) {
-                clearTimeout(loadTimeout);
-                loadTimeout = null;
+            const jpegSrc = baseName + '.jpg' || baseName + '.jpeg' || baseName + '.JPG' || baseName + '.JPEG';
+            if (this.src !== jpegSrc) {
+                this.src = jpegSrc;
             }
         };
-        
-        // İlk formatı dene
-        tryNextFormat();
         
         photoViewerImage.appendChild(img);
         
