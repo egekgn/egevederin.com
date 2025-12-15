@@ -558,7 +558,9 @@
     if (mainNav) {
         mainNav.addEventListener('click', function(e) {
             if (e.target.tagName === 'A') {
+                e.stopPropagation(); // Event propagation'ı durdur - overlay'e gitmemeli
                 closeNav();
+                // Link'in doğal davranışı (scroll) çalışacak
             }
         });
     }
