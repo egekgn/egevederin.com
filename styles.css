@@ -1432,7 +1432,7 @@ body::after {
         width: 280px;
         height: 100vh;
         background: linear-gradient(180deg, rgba(5,7,10,0.98), rgba(11,15,20,0.98));
-        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
+        /* Menü NET kalacak - blur yok, blur sadece overlay'de */
         border-left: 2px solid rgba(255,34,68,0.5);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
         flex-direction: column;
@@ -1441,7 +1441,7 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 2002; /* Çok yüksek z-index - overlay katmanlarının üzerinde */
+        z-index: 2002; /* EN ÜST KATMAN - overlay (2001) üzerinde, net ve tıklanabilir */
         overflow-y: auto;
         pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
     }
@@ -1477,7 +1477,7 @@ body::after {
         outline: none; /* Focus ring'i kaldır ama erişilebilirlik için alternatif feedback var */
     }
     
-    /* Menü açıkken arka planı karart */
+    /* Menü açıkken arka planı karart ve blur yap */
     .nav-overlay {
         display: none;
         position: fixed;
@@ -1486,9 +1486,11 @@ body::after {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.6);
-        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
-        z-index: 2001; /* Menüden (2002) alt, ama diğer tüm içerikten üst */
-        pointer-events: auto; /* Overlay tıklanabilir olmalı (menüyü kapatmak için) */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px); /* iOS Safari desteği */
+        z-index: 2001; /* Menüden (2002) ALT - blur overlay menünün altında kalacak */
+        pointer-events: auto; /* Overlay tıklanabilir (menüyü kapatmak için) */
+        /* Menü alanını etkilememesi için menü z-index'i daha yüksek olduğundan sorun yok */
     }
     
     .nav-overlay.active {
@@ -1915,7 +1917,7 @@ body::after {
         width: 280px;
         height: 100vh;
         background: linear-gradient(180deg, rgba(5,7,10,0.98), rgba(11,15,20,0.98));
-        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
+        /* Menü NET kalacak - blur yok, blur sadece overlay'de */
         border-left: 2px solid rgba(255,34,68,0.5);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
         flex-direction: column;
@@ -1924,7 +1926,7 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 2002; /* Mobil menü ile aynı yüksek z-index */
+        z-index: 2002; /* EN ÜST KATMAN - overlay (2001) üzerinde, net ve tıklanabilir */
         overflow-y: auto;
         pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
     }
