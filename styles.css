@@ -78,7 +78,7 @@ body {
     border: none;
     cursor: pointer;
     padding: 0;
-    z-index: 1002;
+    z-index: 1002; /* Gizli not X butonundan (1003) alt, ama diğer içerikten üst */
     position: relative;
 }
 
@@ -1352,6 +1352,7 @@ body::after {
     transition: all 0.2s ease;
     opacity: 0;
     pointer-events: none;
+    z-index: 1003; /* Hamburger menüden üstte olmalı */
 }
 
 .hidden-postcard.open .postcard__close {
@@ -1440,7 +1441,7 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 1000;
+        z-index: 1001; /* Overlay'den üstte */
         overflow-y: auto;
     }
     
@@ -1453,13 +1454,16 @@ body::after {
         padding: 16px 0;
         font-size: 1em;
         border-bottom: 1px solid rgba(255,34,68,0.2);
-        color: var(--text);
+        color: #ffffff !important; /* Beyaz renk, önemli */
         transition: all 0.2s ease;
+        position: relative;
+        z-index: 1002; /* Menü içeriğinin en üstte olması için */
+        pointer-events: auto; /* Tıklanabilir olduğundan emin ol */
     }
     
     .nav a:hover,
     .nav a:active {
-        color: var(--primary);
+        color: var(--primary) !important;
         text-shadow: 0 0 8px var(--primary);
         padding-left: 12px;
         border-bottom-color: rgba(255,34,68,0.5);
@@ -1475,11 +1479,23 @@ body::after {
         height: 100%;
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(4px);
-        z-index: 999;
+        z-index: 1000; /* Menüden alt, ama diğer içerikten üst */
+        pointer-events: auto; /* Tıklanabilir olmalı */
     }
     
     .nav-overlay.active {
         display: block;
+    }
+    
+    /* Gizli not açıkken X butonunu hamburger menüden uzak tut */
+    .hidden-postcard.open .postcard__close {
+        right: 60px; /* Hamburger menüden uzak */
+    }
+    
+    @media (max-width: 768px) {
+        .hidden-postcard.open .postcard__close {
+            right: 50px; /* Mobilde hamburger menü için daha fazla boşluk */
+        }
     }
     
     /* Content mobil */
@@ -1808,6 +1824,12 @@ body::after {
     .hidden-postcard.open .postcard-content {
         width: calc(100vw - 20px);
         padding: 0 20px;
+    }
+    
+    /* Mobilde gizli not açıkken X butonunu hamburger menüden uzak tut */
+    .hidden-postcard.open .postcard__close {
+        right: 50px; /* Hamburger menü ikonundan uzak */
+        z-index: 1003; /* Hamburger menüden üstte */
     }
     
     .postcard__message {
