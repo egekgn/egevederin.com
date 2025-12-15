@@ -9,6 +9,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css" />
+    <!-- Galeri görselleri preload -->
+    <link rel="preload" as="image" href="gallery/IMG_8884.webp" fetchpriority="high">
+    <link rel="preload" as="image" href="gallery/06bfd7fe-f776-4306-bf6a-e294f8f7d8df.webp" fetchpriority="high">
+    <link rel="preload" as="image" href="gallery/IMG_3372.webp" fetchpriority="high">
+    <link rel="preload" as="image" href="gallery/IMG_3149.webp">
+    <link rel="preload" as="image" href="gallery/D0B710F9-57E1-4365-A7C6-EAA3034CE308.webp">
+    <link rel="preload" as="image" href="gallery/IMG_8896.webp">
+    <link rel="preload" as="image" href="gallery/IMG_1710.webp">
+    <link rel="preload" as="image" href="gallery/3cb51970-a2f4-4ee3-8fdc-fb83590b5663.webp">
+    <link rel="preload" as="image" href="gallery/IMG_8936.webp">
+    <link rel="preload" as="image" href="gallery/F1A6C860-E71A-4DC5-BFE4-8810C8877590_1_105_c.webp">
 </head>
 <body>
     <canvas id="matrix-canvas" aria-hidden="true"></canvas>
@@ -152,7 +163,15 @@
                 <div class="gallery-bubble">
                     <div class="gallery-bubble__preview">
                         <div class="gallery-bubble__image-container" data-gallery-preview>
-                            <!-- İlk 3 fotoğraf buraya eklenecek -->
+                            <div class="gallery-bubble__image">
+                                <img src="gallery/IMG_8884.webp" alt="Fotoğraf 1" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=null; this.src='gallery/IMG_8884.jpeg';">
+                            </div>
+                            <div class="gallery-bubble__image">
+                                <img src="gallery/06bfd7fe-f776-4306-bf6a-e294f8f7d8df.webp" alt="Fotoğraf 2" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=null; this.src='gallery/06bfd7fe-f776-4306-bf6a-e294f8f7d8df.jpg';">
+                            </div>
+                            <div class="gallery-bubble__image">
+                                <img src="gallery/IMG_3372.webp" alt="Fotoğraf 3" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=null; this.src='gallery/IMG_3372.jpeg';">
+                            </div>
                         </div>
                     </div>
                     <a class="gallery-bubble__link" href="#" data-gallery-open>Devamını gör →</a>
