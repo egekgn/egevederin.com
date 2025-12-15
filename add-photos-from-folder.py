@@ -89,8 +89,15 @@ def add_photos_from_folder(folder_path):
     
     return True
 
+def get_fallback_path(webp_path):
+    """WebP dosyası için fallback path oluştur"""
+    base = webp_path.replace('.webp', '').replace('.WEBP', '')
+    # Olası fallback uzantıları
+    fallbacks = ['.jpeg', '.jpg', '.JPG', '.JPEG']
+    return base + fallbacks[0]  # Varsayılan olarak .jpeg
+
 def update_index_html(gallery_data):
-    """index.html dosyasını günceller"""
+    """index.html dosyasını günceller - hem gallery modal hem de preview"""
     import re
     
     try:
@@ -100,32 +107,75 @@ def update_index_html(gallery_data):
         print("❌ index.html dosyası bulunamadı!")
         return False
     
-    # JSON'u formatla
+    photos = gallery_data.get('photos', [])
+    if not photos:
+        print("⚠️  Galeride fotoğraf yok, HTML güncellenmedi")
+        return False
+    
+    # 1. Gallery Preview bölümünü güncelle (ilk 3 fotoğraf)
+    preview_start = html_content.find('<div class="gallery-bubble__image-container" data-gallery-preview>')
+    preview_end = html_content.find('</div>', preview_start) + 6
+    
+    if preview_start != -1:
+        preview_html = '<div class="gallery-bubble__image-container" data-gallery-preview>\n'
+        for i, photo in enumerate(photos[:3]):  # İlk 3 fotoğraf
+            filename = photo['filename']
+            fallback = get_fallback_path(filename)
+            preview_html += f'                            <div class="gallery-bubble__image">\n'
+            preview_html += f'                                <img src="{filename}" alt="Fotoğraf {i+1}" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=null; this.src=\'{fallback}\';">\n'
+            preview_html += f'                            </div>\n'
+        preview_html += '                        </div>'
+        html_content = html_content[:preview_start] + preview_html + html_content[preview_end:]
+        print("✅ Gallery preview güncellendi!")
+    
+    # 2. Gallery Modal içeriğini güncelle (tüm fotoğraflar)
+    modal_start = html_content.find('<div class="gallery-modal__content" data-gallery-content>')
+    modal_end = html_content.find('</div>', modal_start + 50) + 6
+    
+    if modal_start != -1:
+        modal_html = '<div class="gallery-modal__content" data-gallery-content>\n'
+        for i, photo in enumerate(photos):
+            filename = photo['filename']
+            fallback = get_fallback_path(filename)
+            # İlk 3 fotoğraf için eager, diğerleri için lazy
+            loading = 'eager' if i < 3 else 'lazy'
+            priority = 'high' if i < 3 else 'auto'
+            modal_html += f'            <div class="gallery-modal__item" data-photo-index="{i}">\n'
+            modal_html += f'                <img src="{filename}" alt="Fotoğraf {i+1}" loading="{loading}" fetchpriority="{priority}" decoding="async" onerror="this.onerror=null; this.src=\'{fallback}\';">\n'
+            modal_html += f'            </div>\n'
+        modal_html += '        </div>'
+        html_content = html_content[:modal_start] + modal_html + html_content[modal_end:]
+        print("✅ Gallery modal güncellendi!")
+    
+    # 3. window.galleryData script bloğunu güncelle
     json_string = json.dumps(gallery_data, indent=12, ensure_ascii=False)
     json_string = json_string.replace('\n', '\n        ')
     
-    # Yeni script içeriği
     new_script = f"""    <script>
-        // Gallery JSON data - inline olarak ekleniyor (file:// protokolü için)
+        // Gallery data - sadece tarih ve index bilgisi için
         window.galleryData = {json_string};
     </script>"""
     
-    # Eski script bloğunu bul ve değiştir
-    pattern = r'    <script>\s*// Gallery JSON data.*?</script>'
-    
+    pattern = r'    <script>\s*// Gallery data.*?</script>'
     if re.search(pattern, html_content, re.DOTALL):
         html_content = re.sub(pattern, new_script, html_content, flags=re.DOTALL)
         print("✅ window.galleryData bloğu güncellendi!")
     else:
-        html_content = html_content.replace('    <script src="script.js"></script>', 
-                                           new_script + '\n    <script src="script.js"></script>')
-        print("✅ window.galleryData bloğu eklendi!")
+        # Eski pattern'i de dene
+        old_pattern = r'    <script>\s*// Gallery JSON data.*?</script>'
+        if re.search(old_pattern, html_content, re.DOTALL):
+            html_content = re.sub(old_pattern, new_script, html_content, flags=re.DOTALL)
+            print("✅ window.galleryData bloğu güncellendi!")
+        else:
+            html_content = html_content.replace('    <script src="script.js"></script>', 
+                                               new_script + '\n    <script src="script.js"></script>')
+            print("✅ window.galleryData bloğu eklendi!")
     
     # index.html'i kaydet
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
     
-    print("✅ index.html güncellendi!")
+    print("✅ index.html tamamen güncellendi!")
     return True
 
 if __name__ == '__main__':
