@@ -1441,13 +1441,15 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 2002; /* EN ÜST KATMAN - overlay (2001) üzerinde, net ve tıklanabilir */
+        z-index: 1000; /* EN ÜST KATMAN - overlay (900) üzerinde, net ve tıklanabilir */
         overflow-y: auto;
         pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
+        opacity: 1; /* Menü her zaman görünür olmalı */
+        visibility: visible; /* Menü her zaman görünür olmalı */
     }
     
     .nav.active {
-        right: 0;
+        right: 0; /* Menü açıkken ekrana gelir */
     }
     
     .nav a {
@@ -1458,7 +1460,7 @@ body::after {
         color: #ffffff !important; /* Beyaz renk, önemli */
         transition: all 0.2s ease;
         position: relative;
-        z-index: 2003; /* Linkler en üstte - kesinlikle tıklanabilir olmalı */
+        z-index: 1001; /* Linkler menü içinde en üstte - kesinlikle tıklanabilir olmalı */
         pointer-events: auto !important; /* iOS'ta tıklama sorunlarını önlemek için */
         display: block; /* Block element olarak tüm alanı kaplamalı */
         cursor: pointer;
@@ -1483,18 +1485,23 @@ body::after {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px); /* iOS Safari desteği */
-        z-index: 2001; /* Menüden (2002) ALT - blur overlay menünün altında kalacak */
+        z-index: 900; /* Menüden (1000) ALT - blur overlay menünün altında kalacak */
         pointer-events: auto; /* Overlay tıklanabilir (menüyü kapatmak için) */
-        /* Menü alanını etkilememesi için menü z-index'i daha yüksek olduğundan sorun yok */
     }
     
     .nav-overlay.active {
         display: block;
+    }
+    
+    /* Menü açıkken ana içeriği tıklanamaz yap */
+    .nav.active ~ .content,
+    body.menu-open .content {
+        pointer-events: none; /* Menü açıkken ana içerik tıklanamaz */
     }
     
     /* Gizli not açıkken X butonunu hamburger menüden uzak tut */
@@ -1926,9 +1933,11 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 2002; /* EN ÜST KATMAN - overlay (2001) üzerinde, net ve tıklanabilir */
+        z-index: 1000; /* EN ÜST KATMAN - overlay (900) üzerinde, net ve tıklanabilir */
         overflow-y: auto;
         pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
+        opacity: 1; /* Menü her zaman görünür olmalı */
+        visibility: visible; /* Menü her zaman görünür olmalı */
     }
     
     .nav.active {
