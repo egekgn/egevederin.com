@@ -1432,7 +1432,7 @@ body::after {
         width: 280px;
         height: 100vh;
         background: linear-gradient(180deg, rgba(5,7,10,0.98), rgba(11,15,20,0.98));
-        /* backdrop-filter kaldırıldı - sayfayı bulanıklaştırmasın */
+        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
         border-left: 2px solid rgba(255,34,68,0.5);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
         flex-direction: column;
@@ -1441,8 +1441,9 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 1001; /* Overlay'den üstte */
+        z-index: 2002; /* Çok yüksek z-index - overlay katmanlarının üzerinde */
         overflow-y: auto;
+        pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
     }
     
     .nav.active {
@@ -1457,16 +1458,23 @@ body::after {
         color: #ffffff !important; /* Beyaz renk, önemli */
         transition: all 0.2s ease;
         position: relative;
-        z-index: 1002; /* Menü içeriğinin en üstte olması için */
-        pointer-events: auto; /* Tıklanabilir olduğundan emin ol */
+        z-index: 2003; /* Linkler en üstte - kesinlikle tıklanabilir olmalı */
+        pointer-events: auto !important; /* iOS'ta tıklama sorunlarını önlemek için */
+        display: block; /* Block element olarak tüm alanı kaplamalı */
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255, 34, 68, 0.3); /* Mobil dokunma feedback */
+        touch-action: manipulation; /* Çift tıklama zoom'u önler ve daha hızlı yanıt verir */
+        -webkit-touch-callout: none; /* Uzun basma menüsünü devre dışı bırak */
     }
     
     .nav a:hover,
-    .nav a:active {
+    .nav a:active,
+    .nav a:focus {
         color: var(--primary) !important;
         text-shadow: 0 0 8px var(--primary);
         padding-left: 12px;
         border-bottom-color: rgba(255,34,68,0.5);
+        outline: none; /* Focus ring'i kaldır ama erişilebilirlik için alternatif feedback var */
     }
     
     /* Menü açıkken arka planı karart */
@@ -1478,9 +1486,9 @@ body::after {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.6);
-        /* backdrop-filter kaldırıldı - sayfayı bulanıklaştırmasın */
-        z-index: 1000; /* Menüden alt, ama diğer içerikten üst */
-        pointer-events: auto; /* Tıklanabilir olmalı */
+        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
+        z-index: 2001; /* Menüden (2002) alt, ama diğer tüm içerikten üst */
+        pointer-events: auto; /* Overlay tıklanabilir olmalı (menüyü kapatmak için) */
     }
     
     .nav-overlay.active {
@@ -1790,6 +1798,10 @@ body::after {
         padding-right: 25px;
         margin-right: -25px;
         z-index: 1002;
+        /* Mobilde arka planı şeffaf yap, görsel ::before ile gösterilecek */
+        background: transparent;
+        border: none;
+        border-right: none;
     }
     
     /* Görsel genişliği korumak için background'u sadece sol tarafta göster */
@@ -1825,7 +1837,7 @@ body::after {
         /* Mobilde hamburger menüye kadar uzanmasın */
         width: calc(100vw - 80px); /* Hamburger menü için boşluk bırak */
         max-width: 300px; /* Maksimum genişlik sınırı */
-        padding: 0 20px;
+        padding: 0 90px 0 20px; /* Sol padding 20px, sağ padding X butonunun altına yazı gelmemesi için 90px */
         /* Mobilde iki katmanlı görünmesini önlemek için */
         position: relative;
         z-index: 1004;
@@ -1903,7 +1915,7 @@ body::after {
         width: 280px;
         height: 100vh;
         background: linear-gradient(180deg, rgba(5,7,10,0.98), rgba(11,15,20,0.98));
-        backdrop-filter: blur(10px);
+        /* backdrop-filter kaldırıldı - iOS'ta tıklama sorunlarına neden olabilir */
         border-left: 2px solid rgba(255,34,68,0.5);
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
         flex-direction: column;
@@ -1912,8 +1924,9 @@ body::after {
         padding: 80px 24px 24px;
         gap: 0;
         transition: right 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        z-index: 1000;
+        z-index: 2002; /* Mobil menü ile aynı yüksek z-index */
         overflow-y: auto;
+        pointer-events: auto; /* Tüm menü tıklanabilir olmalı */
     }
     
     .nav.active {
@@ -1925,6 +1938,12 @@ body::after {
         padding: 16px 0;
         font-size: 1em;
         border-bottom: 1px solid rgba(255,34,68,0.2);
+        position: relative;
+        z-index: 2003; /* Linkler en üstte */
+        pointer-events: auto !important; /* iOS'ta tıklama sorunlarını önlemek için */
+        display: block;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255, 34, 68, 0.3); /* Mobil dokunma feedback */
     }
     
     .section-modal__content .posts-modal-grid {
