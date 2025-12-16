@@ -1043,31 +1043,12 @@
     }
     
     // ADD BUTTON - Event delegation
-    // Mobil dropdown overlay için global değişken
-    let dropdownOverlay = null;
-    let scrollPosition = 0; // Scroll pozisyonunu saklamak için
-    
-    function createDropdownOverlay() {
-        if (dropdownOverlay) return dropdownOverlay;
-        
-        dropdownOverlay = document.createElement('div');
-        dropdownOverlay.className = 'dropdown-overlay';
-        dropdownOverlay.setAttribute('aria-hidden', 'true');
-        document.body.appendChild(dropdownOverlay);
-        
-        // Overlay'e tıklanınca dropdown'u kapat
-        dropdownOverlay.addEventListener('click', function() {
-            closeAllDropdowns();
-        });
-        
-        return dropdownOverlay;
-    }
     
     function closeAllDropdowns() {
         // Tüm dropdown'ları kapat
         document.querySelectorAll('#add-dropdown').forEach(dropdown => {
             dropdown.setAttribute('hidden', '');
-            // Inline style'ları temizle
+            // Inline style'ları temizle (mobilde anasayfadaki dropdown için ayarlanan style'lar)
             dropdown.style.position = '';
             dropdown.style.top = '';
             dropdown.style.right = '';
@@ -1080,27 +1061,8 @@
             dropdown.style.overflow = '';
             dropdown.style.maxHeight = '';
             dropdown.style.zIndex = '';
-            dropdown.style.transform = ''; // Transform'u da temizle
+            dropdown.style.transform = '';
         });
-        
-        // Overlay'i kaldır
-        if (dropdownOverlay) {
-            dropdownOverlay.classList.remove('active');
-        }
-        
-        // Body scroll'u geri aç ve scroll pozisyonunu geri yükle
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.height = '';
-        document.body.classList.remove('dropdown-open');
-        
-        // Scroll pozisyonunu geri yükle
-        if (scrollPosition !== 0) {
-            window.scrollTo(0, scrollPosition);
-            scrollPosition = 0;
-        }
     }
     
     function handleAddButtonClick(e) {
@@ -1126,54 +1088,9 @@
             // Yeni dropdown'u aç
             addDropdown.removeAttribute('hidden');
             
-            // Mobilde anasayfadaki dropdown için modal/bottom-sheet davranışı
-            if (window.innerWidth <= 768 && !musicPlayer.closest('.section-modal')) {
-                const btnRect = clickedBtn.getBoundingClientRect();
-                const dropdown = addDropdown;
-                
-                // Mevcut scroll pozisyonunu sakla
-                scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-                
-                // Overlay oluştur ve göster
-                const overlay = createDropdownOverlay();
-                overlay.classList.add('active');
-                
-                // Body scroll'u kilitle (scroll pozisyonunu koru)
-                document.body.style.position = 'fixed';
-                document.body.style.top = `-${scrollPosition}px`;
-                document.body.style.width = '100%';
-                document.body.style.overflow = 'hidden';
-                document.body.classList.add('dropdown-open');
-                
-                // Dropdown'u butonun altına konumlandır (fixed positioning viewport'a göre)
-                dropdown.style.position = 'fixed';
-                dropdown.style.bottom = 'auto';
-                dropdown.style.top = (btnRect.bottom + 10) + 'px'; // viewport'a göre
-                dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
-                dropdown.style.left = 'auto';
-                dropdown.style.zIndex = '999999';
-                dropdown.style.minWidth = '180px'; // Minimum genişlik
-                dropdown.style.maxWidth = 'none'; // Maksimum genişlik kaldırıldı - içerik kadar genişlesin
-                dropdown.style.width = 'auto'; // Auto width - içerik kadar
-                dropdown.style.height = 'auto'; // Auto height - tüm item'ları göster
-                dropdown.style.overflow = 'visible'; // Overflow visible - tüm içeriği göster
-                dropdown.style.maxHeight = 'none'; // Max height kaldırıldı
-                dropdown.style.transform = 'none'; // Transform'u sıfırla - scroll'dan etkilenmesin
-            } else {
-                // Desktop veya section modal içinde normal absolute positioning
-                dropdown.style.position = '';
-                dropdown.style.top = '';
-                dropdown.style.right = '';
-                dropdown.style.bottom = '';
-                dropdown.style.left = '';
-                dropdown.style.maxWidth = '';
-                dropdown.style.minWidth = '';
-                dropdown.style.width = '';
-                dropdown.style.height = '';
-                dropdown.style.overflow = '';
-                dropdown.style.maxHeight = '';
-                dropdown.style.zIndex = '';
-            }
+            // Mobilde anasayfadaki dropdown için de menü bar'daki gibi normal absolute positioning kullan
+            // Overlay YOK, scroll lock YOK - sadece normal dropdown
+            // Inline style kullanma - CSS'teki normal kurallar geçerli olacak
         } else {
             // Dropdown zaten açık, kapat
             closeAllDropdowns();
@@ -1249,11 +1166,9 @@
     document.addEventListener('click', handleAppleClick, true);
     document.addEventListener('touchend', handleAppleClick, { passive: false, capture: true });
     
-    // Dışarı tıklanınca dropdown'ları kapat (overlay hariç - overlay kendi handler'ı var)
+    // Dışarı tıklanınca dropdown'ları kapat
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('#add-btn') && 
-            !e.target.closest('#add-dropdown') && 
-            !e.target.closest('.dropdown-overlay')) {
+        if (!e.target.closest('#add-btn') && !e.target.closest('#add-dropdown')) {
             closeAllDropdowns();
         }
     });
