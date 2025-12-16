@@ -810,22 +810,56 @@
     });
 })();
 
-// Music Player
+// Music Player - SIFIRDAN YENİDEN KURULDU
 (function () {
-    const audio = document.getElementById('audio-player');
-    const playBtn = document.getElementById('play-btn');
-    const repeatBtn = document.getElementById('repeat-btn');
-    const restartBtn = document.getElementById('restart-btn');
-    const progressTrack = document.getElementById('progress-track');
-    const progressFill = document.getElementById('progress-fill');
-    const progressHandle = document.getElementById('progress-handle');
-    const currentTimeEl = document.getElementById('current-time');
-    const totalTimeEl = document.getElementById('total-time');
-    const playIcon = playBtn ? playBtn.querySelector('.play-icon') : null;
-    const pauseIcon = playBtn ? playBtn.querySelector('.pause-icon') : null;
+    // TEK audio instance - ilk click'te oluşturulacak
+    let audio = null;
+    const audioSrc = 'mehmet-gureli-kimse-bilmez.mp3';
     
     let isDragging = false;
     let isRepeating = false;
+    
+    // Audio instance'ı oluştur (ilk click'te)
+    function initAudio() {
+        if (!audio) {
+            audio = new Audio(audioSrc);
+            audio.preload = 'metadata';
+            audio.crossOrigin = 'anonymous';
+            
+            // Audio event listener'ları
+            audio.addEventListener('loadedmetadata', function() {
+                const duration = audio.duration && isFinite(audio.duration) ? formatTime(audio.duration) : '0:00';
+                document.querySelectorAll('#total-time').forEach(el => {
+                    el.textContent = duration;
+                });
+            });
+            
+            audio.addEventListener('timeupdate', updateProgress);
+            
+            audio.addEventListener('play', function() {
+                updatePlayButtonIcons(true);
+            });
+            
+            audio.addEventListener('pause', function() {
+                updatePlayButtonIcons(false);
+            });
+            
+            audio.addEventListener('ended', function() {
+                if (!audio.loop) {
+                    updatePlayButtonIcons(false);
+                }
+            });
+            
+            audio.addEventListener('error', function(e) {
+                console.error('Audio error:', e);
+                if (audio.error) {
+                    console.error('Error code:', audio.error.code);
+                    console.error('Error message:', audio.error.message);
+                }
+            });
+        }
+        return audio;
+    }
     
     // Zamanı mm:ss formatına çevir
     function formatTime(seconds) {
@@ -835,109 +869,20 @@
         return `${mins}:${String(secs).padStart(2, '0')}`;
     }
     
-    // Progress bar'ı güncelle - Tüm progress bar'ları güncelle (orijinal ve clone)
+    // Progress bar'ı güncelle
     function updateProgress() {
-        if (!audio.duration || isDragging) return;
+        if (!audio || !audio.duration || isDragging) return;
         
         const percent = (audio.currentTime / audio.duration) * 100;
-        // Tüm progress fill'leri güncelle
         document.querySelectorAll('#progress-fill').forEach(fill => {
             fill.style.width = percent + '%';
         });
-        // Tüm progress handle'ları güncelle
         document.querySelectorAll('#progress-handle').forEach(handle => {
             handle.style.left = percent + '%';
         });
-        // Tüm current time elementlerini güncelle
         document.querySelectorAll('#current-time').forEach(el => {
             el.textContent = formatTime(audio.currentTime);
         });
-    }
-    
-    // Toplam süreyi göster - Tüm total time elementlerini güncelle (orijinal ve clone)
-    audio.addEventListener('loadedmetadata', function() {
-        const duration = audio.duration && isFinite(audio.duration) ? formatTime(audio.duration) : '0:00';
-        document.querySelectorAll('#total-time').forEach(el => {
-            el.textContent = duration;
-        });
-    });
-    
-    // Audio yükleme hatalarını yakala
-    audio.addEventListener('error', function(e) {
-        console.error('Audio loading error:', e);
-        console.error('Audio error details:', audio.error);
-        if (audio.error) {
-            console.error('Error code:', audio.error.code);
-            console.error('Error message:', audio.error.message);
-        }
-    });
-    
-    // Progress güncellemesi
-    audio.addEventListener('timeupdate', updateProgress);
-    
-    // Şarkı bittiğinde - loop özelliği zaten audio.loop ile yönetiliyor
-    // Bu event listener yukarıda handlePlayClick içindeki ended listener'ı ile yönetiliyor
-    
-    // Play/Pause butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
-    function handlePlayClick(e) {
-        // SVG içindeki path veya diğer elementlerden de çalışması için closest kullan
-        const clickedBtn = e.target.closest('#play-btn');
-        if (!clickedBtn) return;
-        
-        // Touch event'ler için preventDefault ekle (iOS için)
-        if (e.type === 'touchend') {
-            e.preventDefault();
-        }
-        
-        // Event propagation'ı durdur (sadece bubble phase'i durdur, capture phase'de olduğumuz için sorun yok)
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        
-        console.log('Play button clicked, audio.paused:', audio.paused, 'isPlaying:', isPlaying, 'event type:', e.type);
-        
-        // Toggle mantığı: paused ise play, playing ise pause
-        if (audio.paused && !isPlaying) {
-            // PLAY: Streaming için dosya yüklenirken çalmaya başla
-            isPlaying = true; // Flag'i önce set et
-            
-            // readyState 2 = HAVE_CURRENT_DATA (yeterli veri var, çalabilir)
-            if (audio.readyState >= 2) {
-                // Yeterli veri var, direkt çal
-                audio.play().then(() => {
-                    console.log('Audio started playing');
-                    isPlaying = true;
-                    updatePlayButtonIcons(true);
-                }).catch(err => {
-                    console.error('Play error:', err);
-                    isPlaying = false;
-                    updatePlayButtonIcons(false);
-                });
-            } else {
-                // Henüz yeterli veri yok, yükle ve çal
-                audio.load();
-                // Canplay event'i: Yeterli veri yüklendi, çalabilir
-                audio.addEventListener('canplay', function playWhenReady() {
-                    audio.removeEventListener('canplay', playWhenReady);
-                    audio.play().then(() => {
-                        console.log('Audio started playing after load');
-                        isPlaying = true;
-                        updatePlayButtonIcons(true);
-                    }).catch(err => {
-                        console.error('Play error:', err);
-                        isPlaying = false;
-                        updatePlayButtonIcons(false);
-                    });
-                }, { once: true });
-            }
-            // UI'ı hemen güncelle (optimistic update)
-            updatePlayButtonIcons(true);
-        } else {
-            // PAUSE
-            console.log('Pausing audio');
-            isPlaying = false;
-            audio.pause();
-            updatePlayButtonIcons(false);
-        }
     }
     
     // Play button icon'larını güncelle
@@ -950,132 +895,97 @@
         });
     }
     
-    // Audio state değişikliklerini dinle
-    audio.addEventListener('play', function() {
-        isPlaying = true;
-        updatePlayButtonIcons(true);
-    });
-    
-    audio.addEventListener('pause', function() {
-        isPlaying = false;
-        updatePlayButtonIcons(false);
-    });
-    
-    audio.addEventListener('ended', function() {
-        if (!audio.loop) {
-            isPlaying = false;
-            updatePlayButtonIcons(false);
+    // PLAY/PAUSE - Event delegation
+    function handlePlayClick(e) {
+        const clickedBtn = e.target.closest('#play-btn');
+        if (!clickedBtn) return;
+        
+        if (e.type === 'touchend') {
+            e.preventDefault();
         }
-    });
-    
-    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
-    document.addEventListener('click', handlePlayClick, true);
-    document.addEventListener('touchend', handlePlayClick, { passive: false, capture: true });
-    
-    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
-    if (playBtn) {
-        playBtn.addEventListener('click', handlePlayClick);
-        playBtn.addEventListener('touchend', handlePlayClick);
+        e.stopPropagation();
+        
+        // Audio instance'ı oluştur (ilk click'te)
+        const audioInstance = initAudio();
+        
+        // Toggle: audio.paused üzerinden kontrol et
+        if (audioInstance.paused) {
+            // PLAY
+            try {
+                audioInstance.play().then(() => {
+                    console.log('Audio playing');
+                }).catch(err => {
+                    console.error('Play error:', err);
+                });
+            } catch (err) {
+                console.error('Play error:', err);
+            }
+        } else {
+            // PAUSE
+            audioInstance.pause();
+        }
     }
     
-    // Repeat butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    // REPEAT - Event delegation
     function handleRepeatClick(e) {
         const clickedBtn = e.target.closest('#repeat-btn');
         if (!clickedBtn) return;
         
-        e.preventDefault();
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
         e.stopPropagation();
+        
+        if (!audio) initAudio();
+        
         isRepeating = !isRepeating;
-        // Tüm repeat butonlarını güncelle (orijinal ve clone)
+        audio.loop = isRepeating;
+        
         document.querySelectorAll('#repeat-btn').forEach(btn => {
             btn.classList.toggle('active', isRepeating);
         });
-        audio.loop = isRepeating; // Audio element'in loop özelliğini ayarla
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için)
-    document.addEventListener('click', handleRepeatClick);
-    document.addEventListener('touchend', handleRepeatClick);
-    
-    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
-    if (repeatBtn) {
-        repeatBtn.addEventListener('click', handleRepeatClick);
-        repeatBtn.addEventListener('touchend', handleRepeatClick);
-    }
-    
-    // Başa sar butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    // RESTART - Event delegation
     function handleRestartClick(e) {
         const clickedBtn = e.target.closest('#restart-btn');
         if (!clickedBtn) return;
         
-        // Touch event'ler için preventDefault ekle (iOS için)
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        e.stopImmediatePropagation();
         
-        const wasPlaying = isPlaying; // Restart öncesi oynatma durumunu hatırla
+        if (!audio) initAudio();
         
-        // Audio element'in hazır olduğundan emin ol
-        if (audio.readyState >= 2) {
-            audio.currentTime = 0;
-            updateProgress();
-            // Eğer çalıyorsa, başa sar ve devam et
-            if (wasPlaying) {
-                audio.play().then(() => {
-                    isPlaying = true;
-                    updatePlayButtonIcons(true);
-                }).catch(err => {
+        const wasPlaying = !audio.paused;
+        audio.currentTime = 0;
+        updateProgress();
+        
+        if (wasPlaying) {
+            try {
+                audio.play().catch(err => {
                     console.error('Play error after restart:', err);
-                    isPlaying = false;
-                    updatePlayButtonIcons(false);
                 });
+            } catch (err) {
+                console.error('Play error after restart:', err);
             }
-        } else {
-            // Henüz yüklenmemişse, yükle ve başa sar
-            audio.load();
-            audio.addEventListener('loadedmetadata', function() {
-                audio.currentTime = 0;
-                updateProgress();
-                if (wasPlaying) {
-                    audio.play().then(() => {
-                        isPlaying = true;
-                        updatePlayButtonIcons(true);
-                    }).catch(err => {
-                        console.error('Play error after restart:', err);
-                        isPlaying = false;
-                        updatePlayButtonIcons(false);
-                    });
-                }
-            }, { once: true });
         }
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
-    document.addEventListener('click', handleRestartClick, true);
-    document.addEventListener('touchend', handleRestartClick, { passive: false, capture: true });
-    
-    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
-    if (restartBtn) {
-        restartBtn.addEventListener('click', handleRestartClick);
-        restartBtn.addEventListener('touchend', handleRestartClick);
-    }
-    
-    // Progress bar tıklama - Event delegation ile hem orijinal hem clone edilen progress bar'lar için çalışır
+    // PROGRESS CLICK - Event delegation
     function handleProgressClick(e) {
         const clickedTrack = e.target.closest('#progress-track');
         if (!clickedTrack || isDragging) return;
         
-        // Touch event'ler için preventDefault ekle (iOS için)
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        e.stopImmediatePropagation();
+        
+        if (!audio) initAudio();
         
         const rect = clickedTrack.getBoundingClientRect();
-        // Touch event için clientX yerine touches veya changedTouches kullan
         const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : 
                        (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : 
                        e.clientX;
@@ -1084,17 +994,7 @@
         updateProgress();
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
-    document.addEventListener('click', handleProgressClick, true);
-    document.addEventListener('touchend', handleProgressClick, { passive: false, capture: true });
-    
-    // Orijinal progress track için de direkt listener (geriye dönük uyumluluk)
-    if (progressTrack) {
-        progressTrack.addEventListener('click', handleProgressClick);
-        progressTrack.addEventListener('touchend', handleProgressClick);
-    }
-    
-    // Progress bar sürükleme - Event delegation ile hem orijinal hem clone edilen progress handle'lar için çalışır
+    // PROGRESS DRAG - Event delegation
     function handleProgressDragStart(e) {
         const clickedHandle = e.target.closest('#progress-handle');
         if (!clickedHandle) return;
@@ -1103,159 +1003,132 @@
         e.preventDefault();
     }
     
-    // Event delegation - document üzerinde dinle
-    document.addEventListener('mousedown', handleProgressDragStart);
-    document.addEventListener('touchstart', function(e) {
-        const clickedHandle = e.target.closest('#progress-handle');
-        if (!clickedHandle) return;
+    function handleProgressDrag(e) {
+        if (!isDragging || !audio) return;
         
-        isDragging = true;
-        e.preventDefault();
-    });
-    
-    document.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
-        // Tüm progress track'leri kontrol et
         const allTracks = document.querySelectorAll('#progress-track');
         if (allTracks.length > 0) {
             const firstTrack = allTracks[0];
             const rect = firstTrack.getBoundingClientRect();
-            const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
             audio.currentTime = percent * audio.duration;
             updateProgress();
         }
-    });
+    }
     
-    document.addEventListener('mouseup', function() {
+    function handleProgressDragEnd() {
         isDragging = false;
-    });
+    }
     
-    // Touch desteği (mobil) - Event delegation
-    document.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        const allTracks = document.querySelectorAll('#progress-track');
-        if (allTracks.length > 0) {
-            const firstTrack = allTracks[0];
-            const rect = firstTrack.getBoundingClientRect();
-            const touchX = e.touches[0].clientX;
-            const percent = Math.max(0, Math.min(1, (touchX - rect.left) / rect.width));
-            audio.currentTime = percent * audio.duration;
-            updateProgress();
-            e.preventDefault();
-        }
-    });
-    
-    document.addEventListener('touchend', function() {
-        isDragging = false;
-    });
-    
-    // Playlist'e ekle butonu ve dropdown
-    // Şarkı başlığını al - ilk olarak mevcut olanı bul
-    const songTitleEl = document.getElementById('song-title');
-    const songTitle = songTitleEl ? songTitleEl.textContent : 'Kimse Bilmez';
-    
-    // Add button - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    // ADD BUTTON - Event delegation
     function handleAddButtonClick(e) {
         const clickedBtn = e.target.closest('#add-btn');
         if (!clickedBtn) return;
         
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
         e.stopPropagation();
         
-        // Tıklanan butonun ait olduğu music player'ı bul
         const musicPlayer = clickedBtn.closest('.music-player');
         if (!musicPlayer) return;
         
-        // Bu music player içindeki dropdown'ı bul
         const addDropdown = musicPlayer.querySelector('#add-dropdown');
         if (!addDropdown) return;
         
         const isHidden = addDropdown.hasAttribute('hidden');
         if (isHidden) {
-            // Diğer tüm dropdown'ları kapat
             document.querySelectorAll('#add-dropdown').forEach(dropdown => {
                 dropdown.setAttribute('hidden', '');
             });
-            // Bu dropdown'ı aç
             addDropdown.removeAttribute('hidden');
         } else {
             addDropdown.setAttribute('hidden', '');
         }
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için)
-    document.addEventListener('click', handleAddButtonClick);
-    document.addEventListener('touchend', handleAddButtonClick);
-    
-    // Dışarı tıklanınca tüm dropdown'ları kapat
-    document.addEventListener('click', function(e) {
-        // Tıklanan element add-btn veya dropdown içinde değilse kapat
-        if (!e.target.closest('#add-btn') && !e.target.closest('#add-dropdown')) {
-            document.querySelectorAll('#add-dropdown').forEach(dropdown => {
-                dropdown.setAttribute('hidden', '');
-            });
-        }
-    });
-    
-    // Spotify linki - Event delegation
+    // SPOTIFY LINK - Event delegation
     function handleSpotifyClick(e) {
         const spotifyLink = e.target.closest('[data-platform="spotify"]');
         if (!spotifyLink) return;
         
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
         
-        // Şarkı başlığını bul (linkin en yakın music player'ından)
         const musicPlayer = spotifyLink.closest('.music-player');
         const songTitleEl = musicPlayer ? musicPlayer.querySelector('#song-title') : null;
-        const title = songTitleEl ? songTitleEl.textContent : songTitle;
+        const title = songTitleEl ? songTitleEl.textContent : 'Kimse Bilmez';
         
         const searchQuery = encodeURIComponent(title);
         const spotifyURI = `spotify:search:${searchQuery}`;
         const spotifyWebURL = `https://open.spotify.com/search/${searchQuery}`;
         
-        // Önce URI'yi dene (uygulama varsa açılır)
         window.location.href = spotifyURI;
-        
-        // Eğer uygulama yoksa web sayfasını aç
         setTimeout(() => {
             window.open(spotifyWebURL, '_blank');
         }, 500);
         
-        // Dropdown'ı kapat
         const addDropdown = spotifyLink.closest('#add-dropdown');
         if (addDropdown) {
             addDropdown.setAttribute('hidden', '');
         }
     }
     
-    // Event delegation - document üzerinde dinle (capture phase'de)
-    document.addEventListener('click', handleSpotifyClick, true);
-    document.addEventListener('touchend', handleSpotifyClick, { passive: false, capture: true });
-    
-    // Apple Music linki - Event delegation
+    // APPLE MUSIC LINK - Event delegation
     function handleAppleClick(e) {
         const appleLink = e.target.closest('[data-platform="apple"]');
         if (!appleLink) return;
         
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
         
-        // "Kimse Bilmez" şarkısı için doğrudan sayfa linki
         const appleMusicURL = 'https://music.apple.com/tr/song/kimse-bilmez/1225998206';
         window.open(appleMusicURL, '_blank');
         
-        // Dropdown'ı kapat
         const addDropdown = appleLink.closest('#add-dropdown');
         if (addDropdown) {
             addDropdown.setAttribute('hidden', '');
         }
     }
     
-    // Event delegation - document üzerinde dinle (capture phase'de)
+    // Event delegation - Tüm butonlar için
+    document.addEventListener('click', handlePlayClick, true);
+    document.addEventListener('touchend', handlePlayClick, { passive: false, capture: true });
+    
+    document.addEventListener('click', handleRepeatClick, true);
+    document.addEventListener('touchend', handleRepeatClick, { passive: false, capture: true });
+    
+    document.addEventListener('click', handleRestartClick, true);
+    document.addEventListener('touchend', handleRestartClick, { passive: false, capture: true });
+    
+    document.addEventListener('click', handleProgressClick, true);
+    document.addEventListener('touchend', handleProgressClick, { passive: false, capture: true });
+    
+    document.addEventListener('mousedown', handleProgressDragStart, true);
+    document.addEventListener('touchstart', handleProgressDragStart, { passive: false, capture: true });
+    document.addEventListener('mousemove', handleProgressDrag, true);
+    document.addEventListener('touchmove', handleProgressDrag, { passive: false, capture: true });
+    document.addEventListener('mouseup', handleProgressDragEnd, true);
+    document.addEventListener('touchend', handleProgressDragEnd, true);
+    
+    document.addEventListener('click', handleAddButtonClick, true);
+    document.addEventListener('touchend', handleAddButtonClick, { passive: false, capture: true });
+    
+    document.addEventListener('click', handleSpotifyClick, true);
+    document.addEventListener('touchend', handleSpotifyClick, { passive: false, capture: true });
+    
     document.addEventListener('click', handleAppleClick, true);
     document.addEventListener('touchend', handleAppleClick, { passive: false, capture: true });
+    
+    // Dışarı tıklanınca dropdown'ları kapat
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#add-btn') && !e.target.closest('#add-dropdown')) {
+            document.querySelectorAll('#add-dropdown').forEach(dropdown => {
+                dropdown.setAttribute('hidden', '');
+            });
+        }
+    });
 })();
 
 // Gizli Buton ve Kartpostal
