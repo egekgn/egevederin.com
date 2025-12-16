@@ -1015,77 +1015,8 @@ body::after {
     }
     
     /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
-    /* ÖNEMLİ: Anasayfadaki dropdown için çok güçlü kurallar */
-    .music-player-section .music-player__dropdown {
-        z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde (overlay'den üstte) */
-        position: fixed !important; /* Mobilde fixed positioning - viewport'a göre, JavaScript ile konumlandırılacak */
-        min-width: 180px !important; /* Minimum genişlik */
-        max-width: none !important; /* Maksimum genişlik yok - içerik kadar genişlesin */
-        width: auto !important; /* Auto width */
-        height: auto !important; /* Auto height - tüm item'ları göster */
-        max-height: none !important; /* Max height yok - tüm içerik görünsün */
-        overflow: visible !important; /* Overflow visible - tüm içeriği göster */
-        /* Scroll'dan bağımsız - fixed positioning ile viewport'a göre sabit */
-        transform: none !important; /* Transform'u sıfırla - scroll'dan etkilenmesin */
-        will-change: transform; /* Performans optimizasyonu */
-    }
-    
-    /* Anasayfadaki dropdown item'ları kesinlikle görünür olmalı */
-    .music-player-section .music-player__dropdown-item {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        height: auto !important;
-        min-height: 44px !important;
-    }
-    
-    /* Desktop'ta absolute, mobilde fixed */
-    @media (min-width: 769px) {
-        .music-player-section .music-player__dropdown {
-            position: absolute !important;
-            max-width: none !important;
-            width: auto !important;
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-        }
-    }
-    
-    .music-player-section .music-player__add-wrapper {
-        z-index: 1000000 !important;
-        isolation: isolate !important;
-        position: relative !important;
-    }
-    
-    /* Anasayfadaki panel ve music player için isolation ve overflow */
-    .music-player-section .panel {
-        position: relative !important;
-        isolation: isolate !important; /* Yeni stacking context - dropdown'un üstte görünmesi için */
-        overflow: visible !important; /* Dropdown'un görünmesi için */
-        z-index: 100 !important; /* Panel'in kendisi de yüksek z-index */
-    }
-    
-    .music-player-section .music-player {
-        position: relative !important;
-        isolation: isolate !important; /* Yeni stacking context */
-        overflow: visible !important;
-        z-index: 101 !important; /* Music player'ın z-index'i */
-    }
-    
-    /* Content container için de overflow ve z-index kontrolü */
-    .content {
-        overflow: visible !important; /* Mobilde dropdown'un görünmesi için */
-        position: relative !important;
-        z-index: 1 !important; /* Content'in z-index'i düşük kalacak ama overflow visible */
-    }
-    
-    /* Music player section için de isolation */
-    .music-player-section {
-        position: relative !important;
-        isolation: isolate !important;
-        overflow: visible !important;
-        z-index: 10 !important;
-    }
+    /* Menü bar'daki gibi normal dropdown davranışı - özel kurallar kaldırıldı */
+    /* Normal CSS kuralları geçerli olacak */
     
     /* Section modal içindeki dropdown için de aynı */
     .section-modal .music-player__dropdown {
@@ -1122,38 +1053,9 @@ body::after {
     pointer-events: all;
 }
 
-/* Mobilde anasayfadaki dropdown için transform override - scroll'dan bağımsız olmalı */
-@media (max-width: 768px) {
-    .music-player-section .music-player__dropdown:not([hidden]) {
-        transform: none !important; /* Transform'u override et - fixed positioning ile scroll'dan etkilenmesin */
-    }
-}
+/* Mobilde anasayfadaki dropdown - menü bar'daki gibi normal davranış */
 
-/* Dropdown Overlay - Mobil için arka plan overlay */
-.dropdown-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 999998; /* Dropdown'un (999999) altında ama içeriğin üstünde */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    pointer-events: none;
-}
-
-.dropdown-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-/* Body scroll lock - dropdown açıkken */
-body.dropdown-open {
-    overflow: hidden !important;
-    /* position, top, width, height JavaScript ile ayarlanacak (scroll pozisyonunu korumak için) */
-}
+/* Dropdown Overlay - KULLANILMIYOR (menü bar'daki gibi overlay yok) */
 
 .music-player__dropdown-item {
     display: flex !important; /* Kesinlikle görünür olmalı */
