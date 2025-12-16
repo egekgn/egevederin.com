@@ -1043,6 +1043,66 @@
     }
     
     // ADD BUTTON - Event delegation
+    // Mobil dropdown overlay için global değişken
+    let dropdownOverlay = null;
+    let scrollPosition = 0; // Scroll pozisyonunu saklamak için
+    
+    function createDropdownOverlay() {
+        if (dropdownOverlay) return dropdownOverlay;
+        
+        dropdownOverlay = document.createElement('div');
+        dropdownOverlay.className = 'dropdown-overlay';
+        dropdownOverlay.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(dropdownOverlay);
+        
+        // Overlay'e tıklanınca dropdown'u kapat
+        dropdownOverlay.addEventListener('click', function() {
+            closeAllDropdowns();
+        });
+        
+        return dropdownOverlay;
+    }
+    
+    function closeAllDropdowns() {
+        // Tüm dropdown'ları kapat
+        document.querySelectorAll('#add-dropdown').forEach(dropdown => {
+            dropdown.setAttribute('hidden', '');
+            // Inline style'ları temizle
+            dropdown.style.position = '';
+            dropdown.style.top = '';
+            dropdown.style.right = '';
+            dropdown.style.bottom = '';
+            dropdown.style.left = '';
+            dropdown.style.maxWidth = '';
+            dropdown.style.minWidth = '';
+            dropdown.style.width = '';
+            dropdown.style.height = '';
+            dropdown.style.overflow = '';
+            dropdown.style.maxHeight = '';
+            dropdown.style.zIndex = '';
+            dropdown.style.transform = ''; // Transform'u da temizle
+        });
+        
+        // Overlay'i kaldır
+        if (dropdownOverlay) {
+            dropdownOverlay.classList.remove('active');
+        }
+        
+        // Body scroll'u geri aç ve scroll pozisyonunu geri yükle
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+        document.body.classList.remove('dropdown-open');
+        
+        // Scroll pozisyonunu geri yükle
+        if (scrollPosition !== 0) {
+            window.scrollTo(0, scrollPosition);
+            scrollPosition = 0;
+        }
+    }
+    
     function handleAddButtonClick(e) {
         const clickedBtn = e.target.closest('#add-btn');
         if (!clickedBtn) return;
@@ -1060,15 +1120,30 @@
         
         const isHidden = addDropdown.hasAttribute('hidden');
         if (isHidden) {
-            document.querySelectorAll('#add-dropdown').forEach(dropdown => {
-                dropdown.setAttribute('hidden', '');
-            });
+            // Önce tüm dropdown'ları kapat
+            closeAllDropdowns();
+            
+            // Yeni dropdown'u aç
             addDropdown.removeAttribute('hidden');
             
-            // Mobilde anasayfadaki dropdown için position: fixed ile konumlandır
+            // Mobilde anasayfadaki dropdown için modal/bottom-sheet davranışı
             if (window.innerWidth <= 768 && !musicPlayer.closest('.section-modal')) {
                 const btnRect = clickedBtn.getBoundingClientRect();
                 const dropdown = addDropdown;
+                
+                // Mevcut scroll pozisyonunu sakla
+                scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Overlay oluştur ve göster
+                const overlay = createDropdownOverlay();
+                overlay.classList.add('active');
+                
+                // Body scroll'u kilitle (scroll pozisyonunu koru)
+                document.body.style.position = 'fixed';
+                document.body.style.top = `-${scrollPosition}px`;
+                document.body.style.width = '100%';
+                document.body.style.overflow = 'hidden';
+                document.body.classList.add('dropdown-open');
                 
                 // Dropdown'u butonun altına konumlandır (fixed positioning viewport'a göre)
                 dropdown.style.position = 'fixed';
@@ -1083,6 +1158,7 @@
                 dropdown.style.height = 'auto'; // Auto height - tüm item'ları göster
                 dropdown.style.overflow = 'visible'; // Overflow visible - tüm içeriği göster
                 dropdown.style.maxHeight = 'none'; // Max height kaldırıldı
+                dropdown.style.transform = 'none'; // Transform'u sıfırla - scroll'dan etkilenmesin
             } else {
                 // Desktop veya section modal içinde normal absolute positioning
                 dropdown.style.position = '';
@@ -1096,9 +1172,11 @@
                 dropdown.style.height = '';
                 dropdown.style.overflow = '';
                 dropdown.style.maxHeight = '';
+                dropdown.style.zIndex = '';
             }
         } else {
-            addDropdown.setAttribute('hidden', '');
+            // Dropdown zaten açık, kapat
+            closeAllDropdowns();
         }
     }
     
@@ -1123,10 +1201,8 @@
             window.open(spotifyWebURL, '_blank');
         }, 500);
         
-        const addDropdown = spotifyLink.closest('#add-dropdown');
-        if (addDropdown) {
-            addDropdown.setAttribute('hidden', '');
-        }
+        // Dropdown'u kapat (overlay ve body scroll'u da temizle)
+        closeAllDropdowns();
     }
     
     // APPLE MUSIC LINK - Event delegation
@@ -1140,10 +1216,8 @@
         const appleMusicURL = 'https://music.apple.com/tr/song/kimse-bilmez/1225998206';
         window.open(appleMusicURL, '_blank');
         
-        const addDropdown = appleLink.closest('#add-dropdown');
-        if (addDropdown) {
-            addDropdown.setAttribute('hidden', '');
-        }
+        // Dropdown'u kapat (overlay ve body scroll'u da temizle)
+        closeAllDropdowns();
     }
     
     // Event delegation - Tüm butonlar için
@@ -1175,12 +1249,22 @@
     document.addEventListener('click', handleAppleClick, true);
     document.addEventListener('touchend', handleAppleClick, { passive: false, capture: true });
     
-    // Dışarı tıklanınca dropdown'ları kapat
+    // Dışarı tıklanınca dropdown'ları kapat (overlay hariç - overlay kendi handler'ı var)
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('#add-btn') && !e.target.closest('#add-dropdown')) {
-            document.querySelectorAll('#add-dropdown').forEach(dropdown => {
-                dropdown.setAttribute('hidden', '');
-            });
+        if (!e.target.closest('#add-btn') && 
+            !e.target.closest('#add-dropdown') && 
+            !e.target.closest('.dropdown-overlay')) {
+            closeAllDropdowns();
+        }
+    });
+    
+    // ESC tuşu ile dropdown'u kapat
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openDropdown = document.querySelector('#add-dropdown:not([hidden])');
+            if (openDropdown) {
+                closeAllDropdowns();
+            }
         }
     });
 })();
