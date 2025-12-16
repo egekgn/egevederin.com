@@ -525,6 +525,11 @@ body::after {
     order: 0;
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
+}
+
+.section-modal__content .music-player__right-controls {
+    flex-shrink: 0;
 }
 
 /* Modal'da yazılar için temiz grid yapısı */
@@ -805,12 +810,12 @@ body::after {
 
 .music-player__controls {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     position: relative;
     padding: 0 10px;
     min-height: 80px;
-    overflow: visible;
+    overflow: hidden; /* Butonların taşmasını önle */
     gap: 0;
     width: 100%;
     box-sizing: border-box;
@@ -824,9 +829,7 @@ body::after {
     order: 0;
     position: relative;
     z-index: 1;
-    /* Play butonunun soluna yerleştirmek için */
-    margin-right: auto;
-    padding-right: 80px; /* Play butonunun genişliği için boşluk */
+    flex-shrink: 0; /* Container'dan taşmasını önle */
 }
 
 .music-player__right-controls {
@@ -834,6 +837,7 @@ body::after {
     align-items: center;
     gap: 10px;
     order: 3;
+    flex-shrink: 0; /* Container'dan taşmasını önle */
 }
 
 .music-player__add-wrapper {
@@ -931,7 +935,8 @@ body::after {
     top: 50%;
     transform: translate(-50%, -50%);
     z-index: 5;
-    order: 3;
+    order: 2;
+    flex-shrink: 0;
 }
 
 .music-player__btn--play:hover {
@@ -1735,13 +1740,11 @@ body::after {
         order: 0;
         position: relative;
         z-index: 1;
-        margin-right: auto;
-        padding-right: 80px;
+        flex-shrink: 0;
     }
     
     .section-modal__content .music-player__right-controls {
-        margin-left: auto;
-        padding-left: 80px;
+        flex-shrink: 0;
     }
     
     .section-modal__back {
@@ -1845,6 +1848,10 @@ body::after {
         height: 56px;
     }
     
+    .music-player__controls {
+        overflow: hidden; /* Mobilde de butonların taşmasını önle */
+    }
+    
     .music-player__left-controls {
         display: flex;
         align-items: center;
@@ -1852,13 +1859,11 @@ body::after {
         order: 0;
         position: relative;
         z-index: 1;
-        margin-right: auto;
-        padding-right: 70px; /* Mobilde play butonu daha küçük */
+        flex-shrink: 0;
     }
     
     .music-player__right-controls {
-        margin-left: auto;
-        padding-left: 70px;
+        flex-shrink: 0;
     }
     
     .music-player__btn--restart {
