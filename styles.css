@@ -1017,7 +1017,7 @@ body::after {
     /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
     /* ÖNEMLİ: Anasayfadaki dropdown için çok güçlü kurallar */
     .music-player-section .music-player__dropdown {
-        z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde */
+        z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde (overlay'den üstte) */
         position: fixed !important; /* Mobilde fixed positioning - viewport'a göre, JavaScript ile konumlandırılacak */
         min-width: 180px !important; /* Minimum genişlik */
         max-width: none !important; /* Maksimum genişlik yok - içerik kadar genişlesin */
@@ -1025,6 +1025,9 @@ body::after {
         height: auto !important; /* Auto height - tüm item'ları göster */
         max-height: none !important; /* Max height yok - tüm içerik görünsün */
         overflow: visible !important; /* Overflow visible - tüm içeriği göster */
+        /* Scroll'dan bağımsız - fixed positioning ile viewport'a göre sabit */
+        transform: none !important; /* Transform'u sıfırla - scroll'dan etkilenmesin */
+        will-change: transform; /* Performans optimizasyonu */
     }
     
     /* Anasayfadaki dropdown item'ları kesinlikle görünür olmalı */
@@ -1117,6 +1120,39 @@ body::after {
     opacity: 1;
     transform: translateY(0);
     pointer-events: all;
+}
+
+/* Mobilde anasayfadaki dropdown için transform override - scroll'dan bağımsız olmalı */
+@media (max-width: 768px) {
+    .music-player-section .music-player__dropdown:not([hidden]) {
+        transform: none !important; /* Transform'u override et - fixed positioning ile scroll'dan etkilenmesin */
+    }
+}
+
+/* Dropdown Overlay - Mobil için arka plan overlay */
+.dropdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999998; /* Dropdown'un (999999) altında ama içeriğin üstünde */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+}
+
+.dropdown-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Body scroll lock - dropdown açıkken */
+body.dropdown-open {
+    overflow: hidden !important;
+    /* position, top, width, height JavaScript ile ayarlanacak (scroll pozisyonunu korumak için) */
 }
 
 .music-player__dropdown-item {
