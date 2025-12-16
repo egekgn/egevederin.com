@@ -821,8 +821,8 @@
     const progressHandle = document.getElementById('progress-handle');
     const currentTimeEl = document.getElementById('current-time');
     const totalTimeEl = document.getElementById('total-time');
-    const playIcon = playBtn.querySelector('.play-icon');
-    const pauseIcon = playBtn.querySelector('.pause-icon');
+    const playIcon = playBtn ? playBtn.querySelector('.play-icon') : null;
+    const pauseIcon = playBtn ? playBtn.querySelector('.pause-icon') : null;
     
     let isDragging = false;
     let isRepeating = false;
@@ -876,13 +876,7 @@
     audio.addEventListener('timeupdate', updateProgress);
     
     // Şarkı bittiğinde - loop özelliği zaten audio.loop ile yönetiliyor
-    audio.addEventListener('ended', function() {
-        if (!audio.loop) {
-            // Tüm play butonlarını güncelle (orijinal ve clone)
-            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'block');
-            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'none');
-        }
-    });
+    // Bu event listener yukarıda handlePlayClick içindeki ended listener'ı ile yönetiliyor
     
     // Play/Pause butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
     function handlePlayClick(e) {
@@ -890,23 +884,33 @@
         const clickedBtn = e.target.closest('#play-btn');
         if (!clickedBtn) return;
         
-        // Event propagation'ı durdur
+        // Touch event'ler için preventDefault ekle (iOS için)
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
+        
+        // Event propagation'ı durdur (sadece bubble phase'i durdur, capture phase'de olduğumuz için sorun yok)
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
-        console.log('Play button clicked, audio.paused:', audio.paused);
+        console.log('Play button clicked, audio.paused:', audio.paused, 'isPlaying:', isPlaying, 'event type:', e.type);
         
-        const clickedPlayIcon = clickedBtn.querySelector('.play-icon');
-        const clickedPauseIcon = clickedBtn.querySelector('.pause-icon');
-        
-        if (audio.paused) {
-            // Streaming için: Dosya yüklenirken çalmaya başla
+        // Toggle mantığı: paused ise play, playing ise pause
+        if (audio.paused && !isPlaying) {
+            // PLAY: Streaming için dosya yüklenirken çalmaya başla
+            isPlaying = true; // Flag'i önce set et
+            
             // readyState 2 = HAVE_CURRENT_DATA (yeterli veri var, çalabilir)
             if (audio.readyState >= 2) {
                 // Yeterli veri var, direkt çal
                 audio.play().then(() => {
                     console.log('Audio started playing');
+                    isPlaying = true;
+                    updatePlayButtonIcons(true);
                 }).catch(err => {
                     console.error('Play error:', err);
+                    isPlaying = false;
+                    updatePlayButtonIcons(false);
                 });
             } else {
                 // Henüz yeterli veri yok, yükle ve çal
@@ -916,26 +920,57 @@
                     audio.removeEventListener('canplay', playWhenReady);
                     audio.play().then(() => {
                         console.log('Audio started playing after load');
+                        isPlaying = true;
+                        updatePlayButtonIcons(true);
                     }).catch(err => {
                         console.error('Play error:', err);
+                        isPlaying = false;
+                        updatePlayButtonIcons(false);
                     });
                 }, { once: true });
             }
-            // Tüm play butonlarını güncelle (orijinal ve clone)
-            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'none');
-            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'block');
+            // UI'ı hemen güncelle (optimistic update)
+            updatePlayButtonIcons(true);
         } else {
+            // PAUSE
             console.log('Pausing audio');
+            isPlaying = false;
             audio.pause();
-            // Tüm play butonlarını güncelle (orijinal ve clone)
-            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'block');
-            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'none');
+            updatePlayButtonIcons(false);
         }
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için)
-    document.addEventListener('click', handlePlayClick);
-    document.addEventListener('touchend', handlePlayClick);
+    // Play button icon'larını güncelle
+    function updatePlayButtonIcons(playing) {
+        document.querySelectorAll('#play-btn .play-icon').forEach(icon => {
+            icon.style.display = playing ? 'none' : 'block';
+        });
+        document.querySelectorAll('#play-btn .pause-icon').forEach(icon => {
+            icon.style.display = playing ? 'block' : 'none';
+        });
+    }
+    
+    // Audio state değişikliklerini dinle
+    audio.addEventListener('play', function() {
+        isPlaying = true;
+        updatePlayButtonIcons(true);
+    });
+    
+    audio.addEventListener('pause', function() {
+        isPlaying = false;
+        updatePlayButtonIcons(false);
+    });
+    
+    audio.addEventListener('ended', function() {
+        if (!audio.loop) {
+            isPlaying = false;
+            updatePlayButtonIcons(false);
+        }
+    });
+    
+    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
+    document.addEventListener('click', handlePlayClick, true);
+    document.addEventListener('touchend', handlePlayClick, { passive: false, capture: true });
     
     // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
     if (playBtn) {
@@ -973,17 +1008,28 @@
         const clickedBtn = e.target.closest('#restart-btn');
         if (!clickedBtn) return;
         
-        e.preventDefault();
+        // Touch event'ler için preventDefault ekle (iOS için)
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        const wasPlaying = isPlaying; // Restart öncesi oynatma durumunu hatırla
         
         // Audio element'in hazır olduğundan emin ol
         if (audio.readyState >= 2) {
             audio.currentTime = 0;
             updateProgress();
             // Eğer çalıyorsa, başa sar ve devam et
-            if (!audio.paused) {
-                audio.play().catch(err => {
+            if (wasPlaying) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayButtonIcons(true);
+                }).catch(err => {
                     console.error('Play error after restart:', err);
+                    isPlaying = false;
+                    updatePlayButtonIcons(false);
                 });
             }
         } else {
@@ -992,13 +1038,23 @@
             audio.addEventListener('loadedmetadata', function() {
                 audio.currentTime = 0;
                 updateProgress();
+                if (wasPlaying) {
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updatePlayButtonIcons(true);
+                    }).catch(err => {
+                        console.error('Play error after restart:', err);
+                        isPlaying = false;
+                        updatePlayButtonIcons(false);
+                    });
+                }
             }, { once: true });
         }
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için)
-    document.addEventListener('click', handleRestartClick);
-    document.addEventListener('touchend', handleRestartClick);
+    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
+    document.addEventListener('click', handleRestartClick, true);
+    document.addEventListener('touchend', handleRestartClick, { passive: false, capture: true });
     
     // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
     if (restartBtn) {
@@ -1011,7 +1067,12 @@
         const clickedTrack = e.target.closest('#progress-track');
         if (!clickedTrack || isDragging) return;
         
+        // Touch event'ler için preventDefault ekle (iOS için)
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
         const rect = clickedTrack.getBoundingClientRect();
         // Touch event için clientX yerine touches veya changedTouches kullan
@@ -1023,9 +1084,9 @@
         updateProgress();
     }
     
-    // Event delegation - document üzerinde dinle (hem click hem touchend için)
-    document.addEventListener('click', handleProgressClick);
-    document.addEventListener('touchend', handleProgressClick);
+    // Event delegation - document üzerinde dinle (hem click hem touchend için, capture phase'de)
+    document.addEventListener('click', handleProgressClick, true);
+    document.addEventListener('touchend', handleProgressClick, { passive: false, capture: true });
     
     // Orijinal progress track için de direkt listener (geriye dönük uyumluluk)
     if (progressTrack) {
@@ -1142,6 +1203,7 @@
         
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
         // Şarkı başlığını bul (linkin en yakın music player'ından)
         const musicPlayer = spotifyLink.closest('.music-player');
@@ -1167,9 +1229,9 @@
         }
     }
     
-    // Event delegation - document üzerinde dinle
-    document.addEventListener('click', handleSpotifyClick);
-    document.addEventListener('touchend', handleSpotifyClick);
+    // Event delegation - document üzerinde dinle (capture phase'de)
+    document.addEventListener('click', handleSpotifyClick, true);
+    document.addEventListener('touchend', handleSpotifyClick, { passive: false, capture: true });
     
     // Apple Music linki - Event delegation
     function handleAppleClick(e) {
@@ -1178,6 +1240,7 @@
         
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         
         // "Kimse Bilmez" şarkısı için doğrudan sayfa linki
         const appleMusicURL = 'https://music.apple.com/tr/song/kimse-bilmez/1225998206';
@@ -1190,9 +1253,9 @@
         }
     }
     
-    // Event delegation - document üzerinde dinle
-    document.addEventListener('click', handleAppleClick);
-    document.addEventListener('touchend', handleAppleClick);
+    // Event delegation - document üzerinde dinle (capture phase'de)
+    document.addEventListener('click', handleAppleClick, true);
+    document.addEventListener('touchend', handleAppleClick, { passive: false, capture: true });
 })();
 
 // Gizli Buton ve Kartpostal
