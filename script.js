@@ -147,7 +147,10 @@
             const full = card.querySelector('.note-card__full');
             const link = card.querySelector('.note-card__link');
             
-            if (!content || !excerpt || !full || !link) return;
+            if (!content || !excerpt || !full || !link) {
+                // Eğer link yoksa, hiçbir şey yapma
+                return;
+            }
             
             // Full içeriğin metnini al
             const fullText = full.textContent.trim();
@@ -157,10 +160,20 @@
             const isOverflowing = excerpt.scrollHeight > excerpt.offsetHeight;
             
             // Full içerik excerpt'tan uzunsa veya içerik kesilmişse link göster
-            if (fullText.length > excerptText.length || isOverflowing) {
+            // ÖNEMLİ: Eğer full içerik excerpt'tan farklıysa (ekstra paragraf varsa) link göster
+            const fullHasMoreContent = fullText.length > excerptText.length;
+            const fullHasMoreParagraphs = full.querySelectorAll('p').length > excerpt.querySelectorAll('p').length;
+            
+            if (fullHasMoreContent || isOverflowing || fullHasMoreParagraphs) {
                 link.style.display = 'inline-block';
+                link.style.visibility = 'visible';
+                link.style.opacity = '1';
             } else {
-                link.style.display = 'none';
+                // Sadece içerik gerçekten aynıysa gizle
+                // Ama her zaman link'i göster - kullanıcı tıklayabilir
+                link.style.display = 'inline-block';
+                link.style.visibility = 'visible';
+                link.style.opacity = '1';
             }
         });
     }
@@ -559,10 +572,18 @@
     }
     
     if (navToggle) {
+        // Click event
         navToggle.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleNav();
         });
+        
+        // Touch event for mobile
+        navToggle.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleNav();
+        }, { passive: false });
     }
     
     // Overlay'e tıklanınca menüyü kapat
@@ -1252,25 +1273,45 @@
         hiddenButton.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             openPostcard(e);
         }, { capture: true });
         
-        // Mobil için touch event'leri
+        // Mobil için touch event'leri - daha agresif yaklaşım
         let touchStartTime = 0;
+        let touchStartY = 0;
+        let touchStartX = 0;
+        
         hiddenButton.addEventListener('touchstart', function(e) {
             touchStartTime = Date.now();
+            if (e.touches && e.touches[0]) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            }
             e.stopPropagation();
-        }, { passive: true });
+        }, { passive: true, capture: true });
         
         hiddenButton.addEventListener('touchend', function(e) {
             const touchDuration = Date.now() - touchStartTime;
-            // Çok kısa dokunma (tap) ise aç
-            if (touchDuration < 300) {
+            let touchMoved = false;
+            
+            if (e.changedTouches && e.changedTouches[0]) {
+                const touchEndY = e.changedTouches[0].clientY;
+                const touchEndX = e.changedTouches[0].clientX;
+                const deltaY = Math.abs(touchEndY - touchStartY);
+                const deltaX = Math.abs(touchEndX - touchStartX);
+                // 10px'den fazla hareket varsa scroll olarak kabul et
+                touchMoved = (deltaY > 10 || deltaX > 10);
+            }
+            
+            // Çok kısa dokunma (tap) ise ve scroll değilse aç
+            if (touchDuration < 300 && !touchMoved) {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 openPostcard(e);
             }
-        }, { passive: false });
+        }, { passive: false, capture: true });
         
         // Kapat butonuna tıklayınca kapat
         postcardClose.addEventListener('click', function(e) {
