@@ -990,6 +990,54 @@ body::after {
     pointer-events: none;
 }
 
+/* Mobil için dropdown z-index'i daha da yükselt */
+@media (max-width: 768px) {
+    .music-player__dropdown {
+        z-index: 99999 !important; /* Çok yüksek z-index - section modal (2000) üzerinde */
+        position: absolute !important; /* Position absolute kalacak - butonun pozisyonuna göre */
+        transform: translateY(10px);
+    }
+    
+    .music-player__dropdown:not([hidden]) {
+        transform: translateY(0);
+    }
+    
+    /* Mobilde dropdown'un parent'ını da güçlendir */
+    .music-player__add-wrapper {
+        position: relative !important;
+        z-index: 100000 !important; /* Dropdown'un parent'ı - en üstte */
+        isolation: isolate; /* Yeni stacking context oluştur */
+    }
+    
+    /* Section modal içindeki dropdown için de aynı */
+    .section-modal .music-player__dropdown {
+        z-index: 99999 !important; /* Section modal (2000) üzerinde */
+    }
+    
+    .section-modal .music-player__add-wrapper {
+        z-index: 100000 !important;
+        isolation: isolate !important;
+    }
+    
+    /* Music player container'ın overflow'unu kontrol et */
+    .music-player {
+        overflow: visible !important; /* Dropdown'un görünmesi için */
+    }
+    
+    .section-modal__content .music-player {
+        overflow: visible !important;
+    }
+    
+    /* Progress bar ve controls'ın z-index'ini mobilde daha da düşür */
+    .music-player__progress-bar {
+        z-index: 1 !important;
+    }
+    
+    .music-player__controls {
+        z-index: 1 !important;
+    }
+}
+
 .music-player__dropdown:not([hidden]) {
     opacity: 1;
     transform: translateY(0);
