@@ -835,23 +835,31 @@
         return `${mins}:${String(secs).padStart(2, '0')}`;
     }
     
-    // Progress bar'ı güncelle
+    // Progress bar'ı güncelle - Tüm progress bar'ları güncelle (orijinal ve clone)
     function updateProgress() {
         if (!audio.duration || isDragging) return;
         
         const percent = (audio.currentTime / audio.duration) * 100;
-        progressFill.style.width = percent + '%';
-        progressHandle.style.left = percent + '%';
-        currentTimeEl.textContent = formatTime(audio.currentTime);
+        // Tüm progress fill'leri güncelle
+        document.querySelectorAll('#progress-fill').forEach(fill => {
+            fill.style.width = percent + '%';
+        });
+        // Tüm progress handle'ları güncelle
+        document.querySelectorAll('#progress-handle').forEach(handle => {
+            handle.style.left = percent + '%';
+        });
+        // Tüm current time elementlerini güncelle
+        document.querySelectorAll('#current-time').forEach(el => {
+            el.textContent = formatTime(audio.currentTime);
+        });
     }
     
-    // Toplam süreyi göster
+    // Toplam süreyi göster - Tüm total time elementlerini güncelle (orijinal ve clone)
     audio.addEventListener('loadedmetadata', function() {
-        if (audio.duration && isFinite(audio.duration)) {
-            totalTimeEl.textContent = formatTime(audio.duration);
-        } else {
-            totalTimeEl.textContent = '0:00';
-        }
+        const duration = audio.duration && isFinite(audio.duration) ? formatTime(audio.duration) : '0:00';
+        document.querySelectorAll('#total-time').forEach(el => {
+            el.textContent = duration;
+        });
     });
     
     // Audio yükleme hatalarını yakala
@@ -870,13 +878,20 @@
     // Şarkı bittiğinde - loop özelliği zaten audio.loop ile yönetiliyor
     audio.addEventListener('ended', function() {
         if (!audio.loop) {
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
+            // Tüm play butonlarını güncelle (orijinal ve clone)
+            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'block');
+            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'none');
         }
     });
     
-    // Play/Pause butonu
-    playBtn.addEventListener('click', function() {
+    // Play/Pause butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    function handlePlayClick(e) {
+        const clickedBtn = e.target.closest('#play-btn');
+        if (!clickedBtn) return;
+        
+        const clickedPlayIcon = clickedBtn.querySelector('.play-icon');
+        const clickedPauseIcon = clickedBtn.querySelector('.pause-icon');
+        
         if (audio.paused) {
             // Streaming için: Dosya yüklenirken çalmaya başla
             // readyState 2 = HAVE_CURRENT_DATA (yeterli veri var, çalabilir)
@@ -896,97 +911,152 @@
                     });
                 }, { once: true });
             }
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
+            // Tüm play butonlarını güncelle (orijinal ve clone)
+            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'none');
+            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'block');
         } else {
             audio.pause();
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
+            // Tüm play butonlarını güncelle (orijinal ve clone)
+            document.querySelectorAll('#play-btn .play-icon').forEach(icon => icon.style.display = 'block');
+            document.querySelectorAll('#play-btn .pause-icon').forEach(icon => icon.style.display = 'none');
         }
-    });
+    }
     
-    // Repeat butonu - SADECE tekrar modunu aç/kapat, BAŞA SARMAZ!
-    repeatBtn.addEventListener('click', function(e) {
+    // Event delegation - document üzerinde dinle
+    document.addEventListener('click', handlePlayClick);
+    
+    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
+    if (playBtn) {
+        playBtn.addEventListener('click', handlePlayClick);
+    }
+    
+    // Repeat butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    function handleRepeatClick(e) {
+        const clickedBtn = e.target.closest('#repeat-btn');
+        if (!clickedBtn) return;
+        
         e.preventDefault();
         e.stopPropagation();
         isRepeating = !isRepeating;
-        repeatBtn.classList.toggle('active', isRepeating);
-        audio.loop = isRepeating; // Audio element'in loop özelliğini ayarla
-        // DİKKAT: currentTime değiştirmiyoruz, sadece loop açıp kapatıyoruz
-    });
-    
-    // Başa sar butonu - şarkıyı başa al
-    if (restartBtn) {
-        restartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Audio element'in hazır olduğundan emin ol
-            if (audio.readyState >= 2) {
-                audio.currentTime = 0;
-                updateProgress();
-                // Eğer şarkı çalıyorsa, başa döndükten sonra devam etsin
-                if (!audio.paused) {
-                    audio.play().catch(err => {
-                        console.error('Play error:', err);
-                    });
-                }
-            } else {
-                // Audio henüz yüklenmemişse, yüklemeyi bekle
-                audio.addEventListener('loadedmetadata', function() {
-                    audio.currentTime = 0;
-                    updateProgress();
-                }, { once: true });
-                audio.load();
-            }
+        // Tüm repeat butonlarını güncelle (orijinal ve clone)
+        document.querySelectorAll('#repeat-btn').forEach(btn => {
+            btn.classList.toggle('active', isRepeating);
         });
-    } else {
-        console.error('Restart button not found!');
+        audio.loop = isRepeating; // Audio element'in loop özelliğini ayarla
     }
     
-    // Progress bar tıklama
-    progressTrack.addEventListener('click', function(e) {
-        if (isDragging) return;
-        const rect = progressTrack.getBoundingClientRect();
+    // Event delegation - document üzerinde dinle
+    document.addEventListener('click', handleRepeatClick);
+    
+    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
+    if (repeatBtn) {
+        repeatBtn.addEventListener('click', handleRepeatClick);
+    }
+    
+    // Başa sar butonu - Event delegation ile hem orijinal hem clone edilen butonlar için çalışır
+    function handleRestartClick(e) {
+        const clickedBtn = e.target.closest('#restart-btn');
+        if (!clickedBtn) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Audio element'in hazır olduğundan emin ol
+        if (audio.readyState >= 2) {
+            audio.currentTime = 0;
+            updateProgress();
+            // Eğer çalıyorsa, başa sar ve devam et
+            if (!audio.paused) {
+                audio.play().catch(err => {
+                    console.error('Play error after restart:', err);
+                });
+            }
+        } else {
+            // Henüz yüklenmemişse, yükle ve başa sar
+            audio.load();
+            audio.addEventListener('loadedmetadata', function() {
+                audio.currentTime = 0;
+                updateProgress();
+            }, { once: true });
+        }
+    }
+    
+    // Event delegation - document üzerinde dinle
+    document.addEventListener('click', handleRestartClick);
+    
+    // Orijinal buton için de direkt listener (geriye dönük uyumluluk)
+    if (restartBtn) {
+        restartBtn.addEventListener('click', handleRestartClick);
+    }
+    
+    // Progress bar tıklama - Event delegation ile hem orijinal hem clone edilen progress bar'lar için çalışır
+    function handleProgressClick(e) {
+        const clickedTrack = e.target.closest('#progress-track');
+        if (!clickedTrack || isDragging) return;
+        
+        const rect = clickedTrack.getBoundingClientRect();
         const percent = (e.clientX - rect.left) / rect.width;
         audio.currentTime = percent * audio.duration;
         updateProgress();
-    });
+    }
     
-    // Progress bar sürükleme
-    progressHandle.addEventListener('mousedown', function(e) {
+    // Event delegation - document üzerinde dinle
+    document.addEventListener('click', handleProgressClick);
+    
+    // Orijinal progress track için de direkt listener (geriye dönük uyumluluk)
+    if (progressTrack) {
+        progressTrack.addEventListener('click', handleProgressClick);
+    }
+    
+    // Progress bar sürükleme - Event delegation ile hem orijinal hem clone edilen progress handle'lar için çalışır
+    function handleProgressDragStart(e) {
+        const clickedHandle = e.target.closest('#progress-handle');
+        if (!clickedHandle) return;
+        
+        isDragging = true;
+        e.preventDefault();
+    }
+    
+    // Event delegation - document üzerinde dinle
+    document.addEventListener('mousedown', handleProgressDragStart);
+    document.addEventListener('touchstart', function(e) {
+        const clickedHandle = e.target.closest('#progress-handle');
+        if (!clickedHandle) return;
+        
         isDragging = true;
         e.preventDefault();
     });
     
     document.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
-        const rect = progressTrack.getBoundingClientRect();
-        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        audio.currentTime = percent * audio.duration;
-        updateProgress();
+        // Tüm progress track'leri kontrol et
+        const allTracks = document.querySelectorAll('#progress-track');
+        if (allTracks.length > 0) {
+            const firstTrack = allTracks[0];
+            const rect = firstTrack.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            audio.currentTime = percent * audio.duration;
+            updateProgress();
+        }
     });
     
     document.addEventListener('mouseup', function() {
         isDragging = false;
     });
     
-    // Touch desteği (mobil)
-    let touchStartX = 0;
-    progressTrack.addEventListener('touchstart', function(e) {
-        isDragging = true;
-        touchStartX = e.touches[0].clientX;
-        e.preventDefault();
-    });
-    
+    // Touch desteği (mobil) - Event delegation
     document.addEventListener('touchmove', function(e) {
         if (!isDragging) return;
-        const rect = progressTrack.getBoundingClientRect();
-        const touchX = e.touches[0].clientX;
-        const percent = Math.max(0, Math.min(1, (touchX - rect.left) / rect.width));
-        audio.currentTime = percent * audio.duration;
-        updateProgress();
-        e.preventDefault();
+        const allTracks = document.querySelectorAll('#progress-track');
+        if (allTracks.length > 0) {
+            const firstTrack = allTracks[0];
+            const rect = firstTrack.getBoundingClientRect();
+            const touchX = e.touches[0].clientX;
+            const percent = Math.max(0, Math.min(1, (touchX - rect.left) / rect.width));
+            audio.currentTime = percent * audio.duration;
+            updateProgress();
+            e.preventDefault();
+        }
     });
     
     document.addEventListener('touchend', function() {
