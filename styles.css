@@ -2056,11 +2056,15 @@ body::after {
         /* Mobilde ">" işaretine kadar genişletilmiş tıklanabilir alan */
         padding-right: 25px;
         margin-right: -25px;
-        z-index: 1002;
+        z-index: 1002 !important; /* Çok yüksek z-index - her şeyin üzerinde */
         /* Mobilde arka planı şeffaf yap, görsel ::before ile gösterilecek */
         background: transparent;
         border: none;
         border-right: none;
+        pointer-events: auto !important; /* Kesinlikle tıklanabilir */
+        touch-action: manipulation; /* iOS touch sorunlarını önler */
+        -webkit-tap-highlight-color: rgba(255, 34, 68, 0.3); /* Touch feedback */
+        -webkit-touch-callout: none; /* Uzun basma menüsünü devre dışı bırak */
     }
     
     /* Görsel genişliği korumak için background'u sadece sol tarafta göster */
@@ -2113,7 +2117,12 @@ body::after {
     
     /* Mobilde gizli not kartpostalının iki katmanlı görünmesini önle */
     .hidden-postcard {
-        z-index: 1004; /* Header içinde en üstte */
+        z-index: 1004 !important; /* Header içinde en üstte */
+        pointer-events: none; /* Container tıklanabilir olmasın */
+    }
+    
+    .hidden-postcard > * {
+        pointer-events: auto !important; /* İçindeki elementler tıklanabilir */
     }
     
     .postcard__message {
