@@ -420,12 +420,19 @@ body::after {
 .section-modal {
     position: fixed !important;
     inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     background: rgba(0, 8, 12, 0.85) !important;
     backdrop-filter: blur(8px) !important;
-    z-index: 1000 !important;
+    z-index: 2000 !important; /* Hamburger menüden (1000) çok daha yüksek */
     overflow-y: auto !important;
     padding: 40px 20px !important;
     display: block !important;
+    /* Tam ekranı kaplamak için */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
 }
 
 .section-modal__close {
@@ -1648,6 +1655,13 @@ body::after {
     /* Section modal mobil */
     .section-modal {
         padding: 20px 12px;
+        width: 100vw !important;
+        height: 100vh !important;
+        /* Tam ekranı kaplamak için */
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
     }
     
     .section-modal__close {
