@@ -515,6 +515,8 @@ body::after {
     width: 100%;
     box-sizing: border-box;
     position: relative;
+    overflow: visible !important; /* Dropdown'un görünmesi için */
+    z-index: 1 !important; /* Controls'ın z-index'ini düşük tut - dropdown'un altında kalsın */
 }
 
 /* Section modal içindeki müzik çalar için tutarlılık - left-controls container */
@@ -761,6 +763,7 @@ body::after {
     position: relative;
     height: 6px;
     cursor: pointer;
+    z-index: 1; /* Progress bar'ın z-index'ini düşük tut - dropdown'un altında kalsın */
 }
 
 .music-player__progress-track {
@@ -815,10 +818,11 @@ body::after {
     position: relative;
     padding: 0 10px;
     min-height: 80px;
-    overflow: hidden; /* Butonların taşmasını önle */
+    overflow: visible; /* Dropdown'un görünmesi için visible yapıldı */
     gap: 0;
     width: 100%;
     box-sizing: border-box;
+    z-index: 1; /* Controls'ın z-index'ini düşük tut - dropdown'un altında kalsın */
 }
 
 /* Sol taraftaki butonlar için ortak container */
@@ -842,6 +846,7 @@ body::after {
 
 .music-player__add-wrapper {
     position: relative;
+    z-index: 10000; /* Dropdown'un parent'ı - dropdown'un en üstte görünmesi için */
 }
 
 .music-player__btn--restart {
@@ -978,7 +983,7 @@ body::after {
     padding: 8px;
     min-width: 180px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 16px rgba(255,34,68,0.2);
-    z-index: 10;
+    z-index: 9999 !important; /* En üstte görünmeli - progress bar ve tüm kontrollerin üzerinde */
     opacity: 0;
     transform: translateY(10px);
     transition: all 0.2s ease;
