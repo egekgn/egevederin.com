@@ -1015,8 +1015,28 @@ body::after {
     }
     
     /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
-    /* Menü bar'daki gibi normal dropdown davranışı - özel kurallar kaldırıldı */
-    /* Normal CSS kuralları geçerli olacak */
+    /* Dropdown'un en üstte görünmesi için z-index yükselt ve stacking context düzelt */
+    .music-player-section .music-player__dropdown {
+        z-index: 999999 !important; /* Çok yüksek z-index - her şeyin üzerinde */
+        position: absolute !important; /* Absolute positioning */
+    }
+    
+    .music-player-section .music-player__add-wrapper {
+        z-index: 1000000 !important; /* Dropdown'un parent'ı da yüksek z-index */
+        position: relative !important;
+        isolation: isolate !important; /* Yeni stacking context */
+    }
+    
+    /* Anasayfadaki music player container'ları için overflow kontrolü */
+    .music-player-section .music-player {
+        overflow: visible !important; /* Dropdown'un görünmesi için */
+        position: relative !important;
+    }
+    
+    .music-player-section .panel {
+        overflow: visible !important; /* Dropdown'un görünmesi için */
+        position: relative !important;
+    }
     
     /* Section modal içindeki dropdown için de aynı */
     .section-modal .music-player__dropdown {
