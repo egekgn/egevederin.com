@@ -982,6 +982,11 @@ body::after {
     border-radius: 12px;
     padding: 8px;
     min-width: 180px;
+    max-width: none; /* Maksimum genişlik yok - içerik kadar genişlesin */
+    width: auto; /* Auto width - içerik kadar */
+    height: auto; /* Auto height - tüm item'ları göster */
+    max-height: none; /* Max height yok - tüm içerik görünsün */
+    overflow: visible; /* Overflow visible - tüm içeriği göster */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 16px rgba(255,34,68,0.2);
     z-index: 9999 !important; /* En üstte görünmeli - progress bar ve tüm kontrollerin üzerinde */
     opacity: 0;
@@ -1014,12 +1019,32 @@ body::after {
     .music-player-section .music-player__dropdown {
         z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde */
         position: fixed !important; /* Mobilde fixed positioning - viewport'a göre, JavaScript ile konumlandırılacak */
+        min-width: 180px !important; /* Minimum genişlik */
+        max-width: none !important; /* Maksimum genişlik yok - içerik kadar genişlesin */
+        width: auto !important; /* Auto width */
+        height: auto !important; /* Auto height - tüm item'ları göster */
+        max-height: none !important; /* Max height yok - tüm içerik görünsün */
+        overflow: visible !important; /* Overflow visible - tüm içeriği göster */
+    }
+    
+    /* Anasayfadaki dropdown item'ları kesinlikle görünür olmalı */
+    .music-player-section .music-player__dropdown-item {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 44px !important;
     }
     
     /* Desktop'ta absolute, mobilde fixed */
     @media (min-width: 769px) {
         .music-player-section .music-player__dropdown {
             position: absolute !important;
+            max-width: none !important;
+            width: auto !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
         }
     }
     
@@ -1095,7 +1120,7 @@ body::after {
 }
 
 .music-player__dropdown-item {
-    display: flex;
+    display: flex !important; /* Kesinlikle görünür olmalı */
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
@@ -1105,6 +1130,10 @@ body::after {
     transition: all 0.2s ease;
     font-size: 14px;
     font-weight: 500;
+    visibility: visible !important; /* Kesinlikle görünür */
+    opacity: 1 !important; /* Kesinlikle görünür */
+    height: auto !important; /* Auto height - içerik kadar */
+    min-height: 44px; /* Minimum touch target size */
 }
 
 .music-player__dropdown-item:hover {
