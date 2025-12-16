@@ -1077,7 +1077,12 @@
                 dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
                 dropdown.style.left = 'auto';
                 dropdown.style.zIndex = '999999';
-                dropdown.style.maxWidth = '180px'; // Dropdown genişliği
+                dropdown.style.minWidth = '180px'; // Minimum genişlik
+                dropdown.style.maxWidth = 'none'; // Maksimum genişlik kaldırıldı - içerik kadar genişlesin
+                dropdown.style.width = 'auto'; // Auto width - içerik kadar
+                dropdown.style.height = 'auto'; // Auto height - tüm item'ları göster
+                dropdown.style.overflow = 'visible'; // Overflow visible - tüm içeriği göster
+                dropdown.style.maxHeight = 'none'; // Max height kaldırıldı
             } else {
                 // Desktop veya section modal içinde normal absolute positioning
                 dropdown.style.position = '';
@@ -1086,6 +1091,11 @@
                 dropdown.style.bottom = '';
                 dropdown.style.left = '';
                 dropdown.style.maxWidth = '';
+                dropdown.style.minWidth = '';
+                dropdown.style.width = '';
+                dropdown.style.height = '';
+                dropdown.style.overflow = '';
+                dropdown.style.maxHeight = '';
             }
         } else {
             addDropdown.setAttribute('hidden', '');
