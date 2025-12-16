@@ -605,12 +605,15 @@
         // Section modal'ı kapat
         function closeSectionModal() {
             sectionModal.setAttribute('hidden', '');
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; // Body overflow'u eski haline getir
         }
         
         // Section modal'ı aç
         function openSectionModal(sectionId) {
             console.log('openSectionModal çağrıldı:', sectionId);
+            
+            // Body overflow'u kapat - tam ekran modal için
+            document.body.style.overflow = 'hidden';
             
             const sectionElement = document.getElementById(sectionId);
             
