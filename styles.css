@@ -805,7 +805,7 @@ body::after {
 
 .music-player__controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     position: relative;
     padding: 0 10px;
@@ -824,6 +824,9 @@ body::after {
     order: 0;
     position: relative;
     z-index: 1;
+    /* Play butonunun soluna yerleştirmek için */
+    margin-right: auto;
+    padding-right: 80px; /* Play butonunun genişliği için boşluk */
 }
 
 .music-player__right-controls {
@@ -845,16 +848,16 @@ body::after {
     justify-content: center !important;
     visibility: visible !important;
     opacity: 1 !important;
-    background: rgba(255,34,68,0.15) !important;
-    border: 1px solid rgba(255,34,68,0.4) !important;
-    border-radius: 50% !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
     position: relative !important;
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
     color: var(--primary) !important;
-    padding: 0 !important;
+    padding: 8px !important;
     margin: 0 !important;
     box-shadow: none !important;
     transition: all 0.2s ease !important;
@@ -869,10 +872,11 @@ body::after {
 }
 
 .music-player__btn--restart:hover {
-    background: rgba(255,34,68,0.25) !important;
-    border-color: rgba(255,34,68,0.6) !important;
+    background: transparent !important;
+    border: none !important;
     color: var(--primary) !important;
-    transform: scale(1.05) !important;
+    transform: scale(1.1) !important;
+    opacity: 0.8 !important;
 }
 
 .music-player__btn--restart:active {
@@ -1731,6 +1735,13 @@ body::after {
         order: 0;
         position: relative;
         z-index: 1;
+        margin-right: auto;
+        padding-right: 80px;
+    }
+    
+    .section-modal__content .music-player__right-controls {
+        margin-left: auto;
+        padding-left: 80px;
     }
     
     .section-modal__back {
@@ -1841,15 +1852,25 @@ body::after {
         order: 0;
         position: relative;
         z-index: 1;
+        margin-right: auto;
+        padding-right: 70px; /* Mobilde play butonu daha küçük */
+    }
+    
+    .music-player__right-controls {
+        margin-left: auto;
+        padding-left: 70px;
     }
     
     .music-player__btn--restart {
-        width: 44px !important;
-        height: 44px !important;
+        width: auto !important;
+        height: auto !important;
         min-width: 44px !important;
         min-height: 44px !important;
-        padding: 0 !important;
+        padding: 8px !important;
         position: relative !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
     }
     
     .music-player__btn--restart svg {
