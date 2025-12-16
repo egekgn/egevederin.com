@@ -503,6 +503,26 @@ body::after {
     box-shadow: 0 0 22px rgba(255,34,68,0.24);
 }
 
+/* Section modal içindeki müzik çalar için tutarlılık sağla */
+.section-modal__content .music-player {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.section-modal__content .music-player__controls {
+    padding: 0 10px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Section modal içindeki restart butonu için offset korunmalı */
+.section-modal__content .music-player__btn--restart {
+    left: 50% !important;
+    margin-left: -80px !important;
+}
+
 /* Modal'da yazılar için temiz grid yapısı */
 .section-modal__content .posts-modal-grid {
     display: grid !important;
@@ -640,20 +660,28 @@ body::after {
     }
     
     .note-card {
-        height: 350px; /* Mobilde sabit yükseklik */
-        max-height: 350px;
-        padding: 16px;
+        /* Section modal içindeki notlar gibi daha kompakt yap */
+        height: auto; /* Sabit yükseklik yerine auto - içeriğe göre */
+        max-height: none; /* Maksimum yükseklik sınırını kaldır */
+        padding: 16px 12px; /* Section modal panel padding'ine benzer */
+        min-height: 200px; /* Minimum yükseklik */
     }
     
     .note-card__title {
-        font-size: 1.2em;
-        margin-bottom: 12px;
+        font-size: 1.1em; /* Biraz daha küçük */
+        margin-bottom: 10px; /* Daha az margin */
     }
     
     .note-card__excerpt {
-        -webkit-line-clamp: 6; /* Mobilde 6 satır */
-        line-clamp: 6;
-        font-size: 0.9em;
+        -webkit-line-clamp: 5; /* Mobilde 5 satır (section modal gibi) */
+        line-clamp: 5;
+        font-size: 0.85em; /* Biraz daha küçük font */
+        line-height: 1.5; /* Daha kompakt satır aralığı */
+    }
+    
+    .note-card__content {
+        flex: 1;
+        min-height: 0;
     }
 }
 
@@ -780,6 +808,9 @@ body::after {
     min-height: 80px;
     overflow: visible;
     gap: 0;
+    /* Restart butonunun konumunu sabitlemek için */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .music-player__right-controls {
@@ -804,9 +835,12 @@ body::after {
     border: none !important;
     border-radius: 0 !important;
     position: absolute !important;
-    left: calc(50% - 80px) !important;
+    /* Restart butonu her zaman controls container'ının ortasına göre konumlanacak */
+    left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
+    /* Play butonunun soluna yerleştirmek için offset */
+    margin-left: -80px !important;
     z-index: 10 !important;
     width: auto !important;
     height: auto !important;
@@ -814,7 +848,9 @@ body::after {
     min-height: 44px !important;
     color: var(--primary) !important;
     padding: 8px !important;
-    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    margin-right: 0 !important;
     box-shadow: none !important;
     transition: all 0.2s ease !important;
 }
@@ -832,10 +868,12 @@ body::after {
     color: var(--primary) !important;
     transform: translate(-50%, -50%) scale(1.1) !important;
     opacity: 0.8 !important;
+    margin-left: -80px !important; /* Hover'da da offset korunmalı */
 }
 
 .music-player__btn--restart:active {
     transform: translate(-50%, -50%) scale(0.95) !important;
+    margin-left: -80px !important; /* Active'de de offset korunmalı */
 }
 
 .music-player__btn--repeat {
@@ -1675,6 +1713,19 @@ body::after {
         padding-top: 10px;
     }
     
+    /* Section modal içindeki müzik çalar için tutarlılık */
+    .section-modal__content .music-player__controls {
+        padding: 0 5px;
+        width: 100%;
+        box-sizing: border-box;
+        position: relative;
+    }
+    
+    .section-modal__content .music-player__btn--restart {
+        left: 50% !important;
+        margin-left: -80px !important;
+    }
+    
     .section-modal__back {
         top: 12px;
         left: 12px;
@@ -1697,6 +1748,26 @@ body::after {
     .panel h3 {
         font-size: 1.3em;
         margin-bottom: 12px;
+    }
+    
+    /* Section modal içindeki notlar için tutarlılık */
+    .section-modal__content .note-card {
+        height: auto;
+        max-height: none;
+        padding: 16px 12px;
+        min-height: 200px;
+    }
+    
+    .section-modal__content .note-card__title {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+    
+    .section-modal__content .note-card__excerpt {
+        -webkit-line-clamp: 5;
+        line-clamp: 5;
+        font-size: 0.85em;
+        line-height: 1.5;
     }
     
     .panel p {
@@ -1740,6 +1811,9 @@ body::after {
     .music-player__controls {
         min-height: 70px;
         padding: 0 5px;
+        width: 100%;
+        box-sizing: border-box;
+        position: relative;
     }
     
     .music-player__btn {
@@ -1759,6 +1833,9 @@ body::after {
         min-width: 44px !important;
         min-height: 44px !important;
         padding: 8px !important;
+        /* Mobilde de aynı konumlandırma */
+        left: 50% !important;
+        margin-left: -80px !important;
     }
     
     .music-player__btn--restart svg {
