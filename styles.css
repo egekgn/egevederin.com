@@ -1731,12 +1731,16 @@ body::after {
         width: 100%;
         box-sizing: border-box;
         position: relative;
+        overflow: hidden; /* Butonların taşmasını önle */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     
     .section-modal__content .music-player__left-controls {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         order: 0;
         position: relative;
         z-index: 1;
