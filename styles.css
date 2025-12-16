@@ -1013,7 +1013,14 @@ body::after {
     /* ÖNEMLİ: Anasayfadaki dropdown için çok güçlü kurallar */
     .music-player-section .music-player__dropdown {
         z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde */
-        position: absolute !important; /* Absolute positioning - butonun pozisyonuna göre */
+        position: fixed !important; /* Mobilde fixed positioning - viewport'a göre, JavaScript ile konumlandırılacak */
+    }
+    
+    /* Desktop'ta absolute, mobilde fixed */
+    @media (min-width: 769px) {
+        .music-player-section .music-player__dropdown {
+            position: absolute !important;
+        }
     }
     
     .music-player-section .music-player__add-wrapper {
