@@ -1010,26 +1010,46 @@ body::after {
     }
     
     /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
+    /* ÖNEMLİ: Anasayfadaki dropdown için çok güçlü kurallar */
     .music-player-section .music-player__dropdown {
-        z-index: 99999 !important; /* Anasayfadaki dropdown - en üstte */
+        z-index: 999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde */
+        position: absolute !important; /* Absolute positioning - butonun pozisyonuna göre */
     }
     
     .music-player-section .music-player__add-wrapper {
-        z-index: 100000 !important;
+        z-index: 1000000 !important;
         isolation: isolate !important;
         position: relative !important;
     }
     
-    /* Anasayfadaki panel ve music player için isolation */
+    /* Anasayfadaki panel ve music player için isolation ve overflow */
     .music-player-section .panel {
-        position: relative;
-        isolation: isolate; /* Yeni stacking context - dropdown'un üstte görünmesi için */
+        position: relative !important;
+        isolation: isolate !important; /* Yeni stacking context - dropdown'un üstte görünmesi için */
+        overflow: visible !important; /* Dropdown'un görünmesi için */
+        z-index: 100 !important; /* Panel'in kendisi de yüksek z-index */
     }
     
     .music-player-section .music-player {
-        position: relative;
-        isolation: isolate; /* Yeni stacking context */
+        position: relative !important;
+        isolation: isolate !important; /* Yeni stacking context */
         overflow: visible !important;
+        z-index: 101 !important; /* Music player'ın z-index'i */
+    }
+    
+    /* Content container için de overflow ve z-index kontrolü */
+    .content {
+        overflow: visible !important; /* Mobilde dropdown'un görünmesi için */
+        position: relative !important;
+        z-index: 1 !important; /* Content'in z-index'i düşük kalacak ama overflow visible */
+    }
+    
+    /* Music player section için de isolation */
+    .music-player-section {
+        position: relative !important;
+        isolation: isolate !important;
+        overflow: visible !important;
+        z-index: 10 !important;
     }
     
     /* Section modal içindeki dropdown için de aynı */
