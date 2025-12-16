@@ -1043,6 +1043,29 @@
                 dropdown.setAttribute('hidden', '');
             });
             addDropdown.removeAttribute('hidden');
+            
+            // Mobilde anasayfadaki dropdown için position: fixed ile konumlandır
+            if (window.innerWidth <= 768 && !musicPlayer.closest('.section-modal')) {
+                const btnRect = clickedBtn.getBoundingClientRect();
+                const dropdown = addDropdown;
+                
+                // Dropdown'u butonun altına konumlandır (fixed positioning viewport'a göre)
+                dropdown.style.position = 'fixed';
+                dropdown.style.bottom = 'auto';
+                dropdown.style.top = (btnRect.bottom + 10) + 'px'; // viewport'a göre
+                dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
+                dropdown.style.left = 'auto';
+                dropdown.style.zIndex = '999999';
+                dropdown.style.maxWidth = '180px'; // Dropdown genişliği
+            } else {
+                // Desktop veya section modal içinde normal absolute positioning
+                dropdown.style.position = '';
+                dropdown.style.top = '';
+                dropdown.style.right = '';
+                dropdown.style.bottom = '';
+                dropdown.style.left = '';
+                dropdown.style.maxWidth = '';
+            }
         } else {
             addDropdown.setAttribute('hidden', '');
         }
