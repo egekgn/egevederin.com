@@ -1009,6 +1009,29 @@ body::after {
         isolation: isolate; /* Yeni stacking context oluştur */
     }
     
+    /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
+    .music-player-section .music-player__dropdown {
+        z-index: 99999 !important; /* Anasayfadaki dropdown - en üstte */
+    }
+    
+    .music-player-section .music-player__add-wrapper {
+        z-index: 100000 !important;
+        isolation: isolate !important;
+        position: relative !important;
+    }
+    
+    /* Anasayfadaki panel ve music player için isolation */
+    .music-player-section .panel {
+        position: relative;
+        isolation: isolate; /* Yeni stacking context - dropdown'un üstte görünmesi için */
+    }
+    
+    .music-player-section .music-player {
+        position: relative;
+        isolation: isolate; /* Yeni stacking context */
+        overflow: visible !important;
+    }
+    
     /* Section modal içindeki dropdown için de aynı */
     .section-modal .music-player__dropdown {
         z-index: 99999 !important; /* Section modal (2000) üzerinde */
