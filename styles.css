@@ -1007,6 +1007,33 @@ body::after {
         transform: translateY(0);
     }
     
+    /* Portal container için stil (body'de) */
+    #dropdown-portal-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+        z-index: 99999999 !important; /* En üstte - tüm stacking context'lerden bağımsız */
+    }
+    
+    /* Portal içindeki dropdown - en üstte görünmeli */
+    #dropdown-portal-container .music-player__dropdown {
+        position: fixed !important;
+        z-index: 99999999 !important; /* En üstte */
+        pointer-events: all !important;
+        transform: translateY(0) !important; /* Animasyon için */
+        opacity: 1 !important;
+        transition: opacity 0.2s ease, transform 0.2s ease !important; /* Animasyon */
+    }
+    
+    /* Portal dropdown açılırken animasyon */
+    #dropdown-portal-container .music-player__dropdown:not([hidden]) {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+    
     /* Mobilde dropdown'un parent'ını da güçlendir */
     .music-player__add-wrapper {
         position: relative !important;
@@ -1014,38 +1041,10 @@ body::after {
         isolation: isolate; /* Yeni stacking context oluştur */
     }
     
-    /* ANASAYFADAKİ music player için özel kurallar - section modal dışında */
-    /* Dropdown'un en üstte görünmesi için position: fixed kullan (tüm stacking context'lerden bağımsız) */
-    .music-player-section .music-player__dropdown {
-        z-index: 9999999 !important; /* Çok çok yüksek z-index - her şeyin üzerinde */
-        position: fixed !important; /* Fixed positioning - tüm stacking context'lerden bağımsız */
-    }
-    
-    .music-player-section .music-player__add-wrapper {
-        z-index: 10000000 !important; /* Dropdown'un parent'ı da çok yüksek z-index */
-        position: relative !important;
-        isolation: isolate !important; /* Yeni stacking context */
-    }
-    
-    /* Anasayfadaki music player container'ları için overflow kontrolü */
-    .music-player-section .music-player {
-        overflow: visible !important; /* Dropdown'un görünmesi için */
-        position: relative !important;
-    }
-    
-    .music-player-section .panel {
-        overflow: visible !important; /* Dropdown'un görünmesi için */
-        position: relative !important;
-    }
-    
-    /* Content container için de overflow kontrolü */
-    .content {
-        overflow: visible !important; /* Dropdown'un görünmesi için */
-    }
-    
-    /* Section modal içindeki dropdown için de aynı */
+    /* Section modal içindeki dropdown için (menubar ile açılan şarkımız sayfası) */
     .section-modal .music-player__dropdown {
         z-index: 99999 !important; /* Section modal (2000) üzerinde */
+        position: absolute !important; /* Absolute kalacak - modal içinde */
     }
     
     .section-modal .music-player__add-wrapper {
