@@ -121,6 +121,15 @@ body {
     position: relative;
 }
 
+/* Mobilde posts section overflow kontrolü */
+@media (max-width: 768px) {
+    .posts {
+        overflow-x: hidden;
+        overflow-y: visible;
+        width: 100%;
+    }
+}
+
 .posts-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -1784,10 +1793,46 @@ body::after {
         box-shadow: 0 0 12px rgba(255, 34, 68, 0.6);
     }
     
-    /* Posts container mobilde tek sütun */
+    /* Posts container mobilde carousel gibi - tek kart görünür */
     .posts-container {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: visible;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 0;
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE ve Edge */
+        margin-left: -16px; /* Content padding'i telafi et */
+        margin-right: -16px;
+        padding-left: 16px; /* İlk kart için padding */
+        padding-right: 16px; /* Son kart için padding */
+    }
+    
+    /* Scrollbar'ı gizle */
+    .posts-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+    
+    /* Mobilde post kartları yan yana dizilmiş, tek seferde bir tanesi görünür */
+    .posts .post-card {
+        min-width: calc(100% - 32px); /* Padding için */
+        width: calc(100% - 32px);
+        flex-shrink: 0;
+        margin-right: 16px; /* Kartlar arası boşluk */
+        margin-bottom: 0;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+    
+    /* Son kart için margin-right yok */
+    .posts .post-card:last-child {
+        margin-right: 0;
     }
     
     /* Posts modal grid mobil */
