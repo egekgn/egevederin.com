@@ -1088,9 +1088,19 @@
             // Yeni dropdown'u aç
             addDropdown.removeAttribute('hidden');
             
-            // Mobilde anasayfadaki dropdown için de menü bar'daki gibi normal absolute positioning kullan
-            // Overlay YOK, scroll lock YOK - sadece normal dropdown
-            // Inline style kullanma - CSS'teki normal kurallar geçerli olacak
+            // Mobilde anasayfadaki dropdown için position: fixed ile konumlandır (JavaScript ile)
+            if (window.innerWidth <= 768 && !musicPlayer.closest('.section-modal')) {
+                const btnRect = clickedBtn.getBoundingClientRect();
+                const dropdown = addDropdown;
+                
+                // Dropdown'u butonun altına konumlandır (fixed positioning viewport'a göre)
+                dropdown.style.position = 'fixed';
+                dropdown.style.bottom = 'auto';
+                dropdown.style.top = (btnRect.bottom + 10) + 'px'; // viewport'a göre
+                dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
+                dropdown.style.left = 'auto';
+                dropdown.style.zIndex = '9999999';
+            }
         } else {
             // Dropdown zaten açık, kapat
             closeAllDropdowns();
