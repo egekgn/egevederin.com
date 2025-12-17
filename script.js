@@ -1569,13 +1569,16 @@
                 card.style.display = 'block';
             });
             
-            // Container'ı scroll et - doğru kartı göster
+            // Container'ı scroll et - doğru kartı göster (ortalanmış)
             if (postsContainer && currentIndex < postCards.length) {
                 const targetCard = postCards[currentIndex];
                 if (targetCard) {
-                    // Scroll pozisyonunu hesapla (padding dahil)
-                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
-                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                    // Scroll pozisyonunu hesapla - kartı ortala
+                    const containerWidth = postsContainer.offsetWidth;
+                    const cardWidth = targetCard.offsetWidth;
+                    const cardLeft = targetCard.offsetLeft;
+                    const scrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
+                    postsContainer.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
                 }
             }
         } else {
@@ -1676,7 +1679,7 @@
         }
     }
     
-    // Scroll event'i - hangi kart görünüyorsa onu aktif yap
+    // Scroll event'i - hangi kart görünüyorsa onu aktif yap (ortalanmış kontrol)
     let scrollTimeout;
     function handleScroll() {
         if (!isMobile()) return;
@@ -1722,7 +1725,7 @@
                     nextButtonMobile.disabled = currentIndex >= maxIndex;
                 }
             }
-        }, 100);
+        }, 150);
     }
     
     // Desktop butonları
@@ -1753,12 +1756,16 @@
             createDots();
             updateVisiblePosts();
             
-            // Mobilde resize sonrası scroll pozisyonunu düzelt
+            // Mobilde resize sonrası scroll pozisyonunu düzelt (ortalanmış)
             if (isMobile() && postsContainer && currentIndex < postCards.length) {
                 const targetCard = postCards[currentIndex];
                 if (targetCard) {
-                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
-                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'auto' });
+                    // Kartı ortala
+                    const containerWidth = postsContainer.offsetWidth;
+                    const cardWidth = targetCard.offsetWidth;
+                    const cardLeft = targetCard.offsetLeft;
+                    const scrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
+                    postsContainer.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'auto' });
                 }
             }
         }, 250);
@@ -1768,17 +1775,21 @@
     createDots();
     updateVisiblePosts();
     
-    // İlk yüklemede mobilde doğru pozisyona scroll et
+    // İlk yüklemede mobilde doğru pozisyona scroll et (ortalanmış)
     if (isMobile() && postsContainer) {
         setTimeout(() => {
             if (currentIndex < postCards.length) {
                 const targetCard = postCards[currentIndex];
                 if (targetCard) {
-                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
-                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'auto' });
+                    // Kartı ortala
+                    const containerWidth = postsContainer.offsetWidth;
+                    const cardWidth = targetCard.offsetWidth;
+                    const cardLeft = targetCard.offsetLeft;
+                    const scrollLeft = cardLeft - (containerWidth - cardWidth) / 2;
+                    postsContainer.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'auto' });
                 }
             }
-        }, 100);
+        }, 150);
     }
 })();
 
