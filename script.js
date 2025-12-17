@@ -1505,7 +1505,7 @@
     });
 })();
 
-// Posts Slider (Yazılar Slider)
+// Posts Slider (Yazılar Slider) - Mobilde carousel/swipe desteği ile
 (function() {
     const postsContainer = document.querySelector('.posts-container');
     const postCards = document.querySelectorAll('.post-card[data-post-index]');
@@ -1520,15 +1520,21 @@
     
     if (!postsContainer || !postCards.length || !nextButton || !prevButton) return;
     
-    let currentIndex = 0; // İlk 3 gönderi görünüyor (0, 1, 2)
-    const visibleCount = window.innerWidth <= 768 ? 1 : 3; // Mobilde 1, desktop'ta 3 gönderi göster
+    let currentIndex = 0;
+    const isMobile = () => window.innerWidth <= 768;
+    const visibleCount = () => isMobile() ? 1 : 3;
+    
+    // Mobilde swipe için değişkenler
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let isDragging = false;
     
     // Mobilde dots oluştur
     function createDots() {
-        if (!dotsContainer || window.innerWidth > 768) return;
+        if (!dotsContainer || !isMobile()) return;
         
         dotsContainer.innerHTML = '';
-        const totalPages = Math.ceil(postCards.length / (window.innerWidth <= 768 ? 1 : 3));
+        const totalPages = postCards.length;
         
         for (let i = 0; i < totalPages; i++) {
             const dot = document.createElement('div');
@@ -1537,32 +1543,57 @@
                 dot.classList.add('active');
             }
             dot.addEventListener('click', function() {
-                currentIndex = i;
-                updateVisiblePosts();
+                goToIndex(i);
             });
             dotsContainer.appendChild(dot);
         }
     }
     
-    // İlk durumu ayarla: İlk 3 gönderi görünür
-    function updateVisiblePosts() {
-        const isMobile = window.innerWidth <= 768;
-        const count = isMobile ? 1 : 3;
+    // Belirli bir index'e git
+    function goToIndex(index) {
+        if (index < 0 || index >= postCards.length) return;
         
-        postCards.forEach((card, index) => {
-            const cardIndex = parseInt(card.getAttribute('data-post-index'));
-            
-            // Görünür gönderileri ayarla
-            if (cardIndex >= currentIndex && cardIndex < currentIndex + count) {
+        currentIndex = index;
+        updateVisiblePosts();
+    }
+    
+    // Görünümü güncelle
+    function updateVisiblePosts() {
+        const mobile = isMobile();
+        const count = visibleCount();
+        
+        if (mobile) {
+            // Mobilde: Kartları yan yana göster, scroll ile geçiş
+            postCards.forEach((card, index) => {
+                const cardIndex = parseInt(card.getAttribute('data-post-index'));
                 card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
+            });
+            
+            // Container'ı scroll et - doğru kartı göster
+            if (postsContainer && currentIndex < postCards.length) {
+                const targetCard = postCards[currentIndex];
+                if (targetCard) {
+                    // Scroll pozisyonunu hesapla (padding dahil)
+                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
+                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                }
             }
-        });
+        } else {
+            // Desktop'ta: Eski mantık
+            postCards.forEach((card, index) => {
+                const cardIndex = parseInt(card.getAttribute('data-post-index'));
+                
+                if (cardIndex >= currentIndex && cardIndex < currentIndex + count) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
         
         // Buton görünürlüğünü ayarla
         const totalPosts = postCards.length;
-        const maxIndex = totalPosts - count;
+        const maxIndex = mobile ? totalPosts - 1 : totalPosts - count;
         
         // Desktop butonları
         if (currentIndex === 0) {
@@ -1584,7 +1615,7 @@
         }
         
         // Dots güncelle
-        if (dotsContainer && isMobile) {
+        if (dotsContainer && isMobile()) {
             const dots = dotsContainer.querySelectorAll('.posts-nav-mobile__dot');
             dots.forEach((dot, index) => {
                 if (index === currentIndex) {
@@ -1598,10 +1629,8 @@
     
     // Navigate fonksiyonu
     function goNext() {
-        const isMobile = window.innerWidth <= 768;
-        const count = isMobile ? 1 : 3;
-        const totalPosts = postCards.length;
-        const maxIndex = totalPosts - count;
+        const mobile = isMobile();
+        const maxIndex = mobile ? postCards.length - 1 : postCards.length - visibleCount();
         
         if (currentIndex < maxIndex) {
             currentIndex++;
@@ -1616,6 +1645,86 @@
         }
     }
     
+    // Mobilde swipe desteği
+    function handleTouchStart(e) {
+        if (!isMobile()) return;
+        touchStartX = e.touches[0].clientX;
+        isDragging = true;
+    }
+    
+    function handleTouchMove(e) {
+        if (!isMobile() || !isDragging) return;
+        // Scroll'u engelleme - sadece swipe için
+    }
+    
+    function handleTouchEnd(e) {
+        if (!isMobile() || !isDragging) return;
+        isDragging = false;
+        
+        touchEndX = e.changedTouches[0].clientX;
+        const swipeDistance = touchStartX - touchEndX;
+        const minSwipeDistance = 50; // Minimum kaydırma mesafesi
+        
+        if (Math.abs(swipeDistance) > minSwipeDistance) {
+            if (swipeDistance > 0) {
+                // Sola kaydırma - sonraki
+                goNext();
+            } else {
+                // Sağa kaydırma - önceki
+                goPrev();
+            }
+        }
+    }
+    
+    // Scroll event'i - hangi kart görünüyorsa onu aktif yap
+    let scrollTimeout;
+    function handleScroll() {
+        if (!isMobile()) return;
+        
+        // Debounce scroll event
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const containerRect = postsContainer.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+            let closestIndex = 0;
+            let closestDistance = Infinity;
+            
+            postCards.forEach((card, index) => {
+                const cardRect = card.getBoundingClientRect();
+                const cardCenter = cardRect.left + cardRect.width / 2;
+                const distance = Math.abs(cardCenter - containerCenter);
+                
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = index;
+                }
+            });
+            
+            // Sadece index değiştiyse güncelle (sonsuz döngüyü önlemek için)
+            if (closestIndex !== currentIndex) {
+                currentIndex = closestIndex;
+                // updateVisiblePosts() çağrılmayacak - sadece dots güncellenecek
+                if (dotsContainer) {
+                    const dots = dotsContainer.querySelectorAll('.posts-nav-mobile__dot');
+                    dots.forEach((dot, index) => {
+                        if (index === currentIndex) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+                }
+                
+                // Buton durumlarını güncelle
+                const maxIndex = postCards.length - 1;
+                if (prevButtonMobile && nextButtonMobile) {
+                    prevButtonMobile.disabled = currentIndex === 0;
+                    nextButtonMobile.disabled = currentIndex >= maxIndex;
+                }
+            }
+        }, 100);
+    }
+    
     // Desktop butonları
     nextButton.addEventListener('click', goNext);
     prevButton.addEventListener('click', goPrev);
@@ -1628,6 +1737,14 @@
         prevButtonMobile.addEventListener('click', goPrev);
     }
     
+    // Mobilde swipe event'leri - her zaman ekle, içeride kontrol edilecek
+    if (postsContainer) {
+        postsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+        postsContainer.addEventListener('touchmove', handleTouchMove, { passive: true });
+        postsContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+        postsContainer.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    
     // Window resize için dots'ları yeniden oluştur
     let resizeTimeout;
     window.addEventListener('resize', function() {
@@ -1635,12 +1752,34 @@
         resizeTimeout = setTimeout(function() {
             createDots();
             updateVisiblePosts();
+            
+            // Mobilde resize sonrası scroll pozisyonunu düzelt
+            if (isMobile() && postsContainer && currentIndex < postCards.length) {
+                const targetCard = postCards[currentIndex];
+                if (targetCard) {
+                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
+                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'auto' });
+                }
+            }
         }, 250);
     });
     
     // İlk durumu ayarla
     createDots();
     updateVisiblePosts();
+    
+    // İlk yüklemede mobilde doğru pozisyona scroll et
+    if (isMobile() && postsContainer) {
+        setTimeout(() => {
+            if (currentIndex < postCards.length) {
+                const targetCard = postCards[currentIndex];
+                if (targetCard) {
+                    const scrollLeft = targetCard.offsetLeft - 16; // Container padding'i
+                    postsContainer.scrollTo({ left: scrollLeft, behavior: 'auto' });
+                }
+            }
+        }, 100);
+    }
 })();
 
 
