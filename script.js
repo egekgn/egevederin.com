@@ -1042,13 +1042,50 @@
         isDragging = false;
     }
     
-    // ADD BUTTON - Event delegation
+    // ADD BUTTON - Event delegation - SIFIRDAN YENİDEN İNŞA EDİLDİ
+    
+    // Portal dropdown için body'de container oluştur
+    let portalContainer = null;
+    function getPortalContainer() {
+        // Eğer zaten DOM'da varsa onu kullan
+        if (!portalContainer) {
+            const existing = document.getElementById('dropdown-portal-container');
+            if (existing) {
+                portalContainer = existing;
+            } else {
+                portalContainer = document.createElement('div');
+                portalContainer.id = 'dropdown-portal-container';
+                portalContainer.style.position = 'fixed';
+                portalContainer.style.top = '0';
+                portalContainer.style.left = '0';
+                portalContainer.style.width = '0';
+                portalContainer.style.height = '0';
+                portalContainer.style.pointerEvents = 'none';
+                portalContainer.style.zIndex = '99999999';
+                document.body.appendChild(portalContainer);
+            }
+        }
+        return portalContainer;
+    }
+    
+    // Orijinal dropdown'ların referanslarını sakla (geri koymak için)
+    const originalDropdowns = new Map();
     
     function closeAllDropdowns() {
         // Tüm dropdown'ları kapat
         document.querySelectorAll('#add-dropdown').forEach(dropdown => {
             dropdown.setAttribute('hidden', '');
-            // Inline style'ları temizle (mobilde anasayfadaki dropdown için ayarlanan style'lar)
+            
+            // Eğer portal'da ise, orijinal yerine geri koy
+            if (originalDropdowns.has(dropdown)) {
+                const originalParent = originalDropdowns.get(dropdown);
+                if (dropdown.parentNode !== originalParent) {
+                    originalParent.appendChild(dropdown);
+                }
+                originalDropdowns.delete(dropdown);
+            }
+            
+            // Inline style'ları temizle
             dropdown.style.position = '';
             dropdown.style.top = '';
             dropdown.style.right = '';
@@ -1062,7 +1099,15 @@
             dropdown.style.maxHeight = '';
             dropdown.style.zIndex = '';
             dropdown.style.transform = '';
+            dropdown.style.opacity = '';
+            dropdown.style.pointerEvents = '';
         });
+        
+        // Portal container'ı temizle ve pointer-events'i kapat
+        if (portalContainer) {
+            portalContainer.innerHTML = '';
+            portalContainer.style.pointerEvents = 'none';
+        }
     }
     
     function handleAddButtonClick(e) {
@@ -1081,26 +1126,42 @@
         if (!addDropdown) return;
         
         const isHidden = addDropdown.hasAttribute('hidden');
+        const isInSectionModal = musicPlayer.closest('.section-modal') !== null;
+        const isMobile = window.innerWidth <= 768;
+        
         if (isHidden) {
             // Önce tüm dropdown'ları kapat
             closeAllDropdowns();
             
-            // Yeni dropdown'u aç
-            addDropdown.removeAttribute('hidden');
-            
-            // Mobilde anasayfadaki dropdown için position: fixed ile konumlandır (JavaScript ile)
-            if (window.innerWidth <= 768 && !musicPlayer.closest('.section-modal')) {
-                const btnRect = clickedBtn.getBoundingClientRect();
-                const dropdown = addDropdown;
+            // Mobilde ve anasayfada (section-modal dışında) ise portal kullan
+            if (isMobile && !isInSectionModal) {
+                // Orijinal parent'ı sakla
+                originalDropdowns.set(addDropdown, addDropdown.parentNode);
                 
-                // Dropdown'u butonun altına konumlandır (fixed positioning viewport'a göre)
-                dropdown.style.position = 'fixed';
-                dropdown.style.bottom = 'auto';
-                dropdown.style.top = (btnRect.bottom + 10) + 'px'; // viewport'a göre
-                dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
-                dropdown.style.left = 'auto';
-                dropdown.style.zIndex = '9999999';
+                // Portal container'a taşı
+                const portal = getPortalContainer();
+                portal.appendChild(addDropdown);
+                
+                // Buton pozisyonunu al
+                const btnRect = clickedBtn.getBoundingClientRect();
+                
+                // Dropdown'u butonun altına konumlandır (fixed positioning)
+                addDropdown.style.position = 'fixed';
+                addDropdown.style.top = (btnRect.bottom + 10) + 'px';
+                addDropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
+                addDropdown.style.left = 'auto';
+                addDropdown.style.bottom = 'auto';
+                addDropdown.style.zIndex = '99999999';
+                addDropdown.style.pointerEvents = 'all';
+                addDropdown.style.transform = 'translateY(0)'; // Animasyon için
+                addDropdown.style.opacity = '1'; // Görünür yap
+                
+                // Portal container'ı aktif et
+                portal.style.pointerEvents = 'all';
             }
+            
+            // Dropdown'u göster
+            addDropdown.removeAttribute('hidden');
         } else {
             // Dropdown zaten açık, kapat
             closeAllDropdowns();
@@ -1178,10 +1239,26 @@
     
     // Dışarı tıklanınca dropdown'ları kapat
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('#add-btn') && !e.target.closest('#add-dropdown')) {
+        const clickedAddBtn = e.target.closest('#add-btn');
+        const clickedDropdown = e.target.closest('#add-dropdown');
+        const clickedPortal = e.target.closest('#dropdown-portal-container');
+        
+        // Eğer buton, dropdown veya portal'a tıklanmadıysa kapat
+        if (!clickedAddBtn && !clickedDropdown && !clickedPortal) {
             closeAllDropdowns();
         }
     });
+    
+    // Touch event için de aynı
+    document.addEventListener('touchend', function(e) {
+        const clickedAddBtn = e.target.closest('#add-btn');
+        const clickedDropdown = e.target.closest('#add-dropdown');
+        const clickedPortal = e.target.closest('#dropdown-portal-container');
+        
+        if (!clickedAddBtn && !clickedDropdown && !clickedPortal) {
+            closeAllDropdowns();
+        }
+    }, { passive: true });
     
     // ESC tuşu ile dropdown'u kapat
     document.addEventListener('keydown', function(e) {
@@ -1192,6 +1269,36 @@
             }
         }
     });
+    
+    // Resize ve scroll'da portal dropdown pozisyonunu güncelle
+    function updatePortalDropdownPosition() {
+        const portal = getPortalContainer();
+        const dropdown = portal.querySelector('#add-dropdown:not([hidden])');
+        if (!dropdown) return;
+        
+        // Orijinal butonu bul
+        const musicPlayer = document.querySelector('.music-player-section .music-player');
+        if (!musicPlayer) return;
+        
+        const addBtn = musicPlayer.querySelector('#add-btn');
+        if (!addBtn) return;
+        
+        const btnRect = addBtn.getBoundingClientRect();
+        
+        // Dropdown pozisyonunu güncelle
+        dropdown.style.top = (btnRect.bottom + 10) + 'px';
+        dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
+    }
+    
+    // Resize ve scroll event'lerinde pozisyonu güncelle
+    let updateTimeout;
+    function debouncedUpdate() {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(updatePortalDropdownPosition, 10);
+    }
+    
+    window.addEventListener('resize', debouncedUpdate);
+    window.addEventListener('scroll', debouncedUpdate, true);
 })();
 
 // Gizli Buton ve Kartpostal
