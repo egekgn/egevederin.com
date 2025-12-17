@@ -127,6 +127,18 @@ body {
         overflow-x: hidden;
         overflow-y: visible;
         width: 100%;
+        position: relative;
+    }
+    
+    /* Content padding'i posts section'da kaldır */
+    .content {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    /* Posts section için padding ekle */
+    .posts {
+        padding: 0;
     }
 }
 
@@ -1803,15 +1815,18 @@ body::after {
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x mandatory;
         gap: 0;
-        width: 100%;
-        max-width: 100%;
+        width: 100vw; /* Tam ekran genişliği */
+        max-width: 100vw;
         position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        padding-left: 16px; /* İlk kart için sol padding */
+        padding-right: 16px; /* Son kart için sağ padding */
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* IE ve Edge */
-        margin-left: -16px; /* Content padding'i telafi et */
-        margin-right: -16px;
-        padding-left: 16px; /* İlk kart için padding */
-        padding-right: 16px; /* Son kart için padding */
+        box-sizing: border-box;
     }
     
     /* Scrollbar'ı gizle */
@@ -1821,18 +1836,21 @@ body::after {
     
     /* Mobilde post kartları yan yana dizilmiş, tek seferde bir tanesi görünür */
     .posts .post-card {
-        min-width: calc(100% - 32px); /* Padding için */
-        width: calc(100% - 32px);
+        min-width: calc(100vw - 32px); /* Tam ekran - padding */
+        width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
         flex-shrink: 0;
         margin-right: 16px; /* Kartlar arası boşluk */
         margin-bottom: 0;
-        scroll-snap-align: start;
+        scroll-snap-align: center; /* Ortaya hizala */
         scroll-snap-stop: always;
+        box-sizing: border-box;
     }
     
     /* Son kart için margin-right yok */
     .posts .post-card:last-child {
         margin-right: 0;
+        padding-right: 16px; /* Son kart için ekstra padding */
     }
     
     /* Posts modal grid mobil */
