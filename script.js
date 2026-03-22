@@ -1618,31 +1618,33 @@
         });
     }
 
-    // Renk Paleti Mantığı
-    const paletteToggle = document.getElementById('palette-toggle');
-    const colorPalette = document.getElementById('particle-color-palette');
+    // ULTRA PERFORMANSLI YENİ RENK PALETİ MANTIĞI
+    const paletteTrigger = document.getElementById('palette-trigger');
+    const paletteContent = document.getElementById('palette-content');
     
-    if (paletteToggle && colorPalette) {
-        paletteToggle.addEventListener('click', () => {
-            const isOpen = colorPalette.classList.toggle('open');
-            paletteToggle.classList.toggle('active', isOpen);
+    if (paletteTrigger && paletteContent) {
+        paletteTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = paletteContent.classList.toggle('open');
+            paletteTrigger.classList.toggle('active', isOpen);
+            console.log("Palette toggled:", isOpen);
         });
     }
 
     const colorDots = document.querySelectorAll('.color-dot');
     colorDots.forEach(dot => {
-        dot.addEventListener('click', () => {
+        dot.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const theme = dot.getAttribute('data-theme');
             if (theme === activeTheme) return;
 
-            // Aktif sınıfını güncelle
             colorDots.forEach(d => d.classList.remove('active'));
             dot.classList.add('active');
 
             activeTheme = theme;
             const newPalette = allColorThemes[activeTheme];
-
-            // Mevcut partiküllerin renklerini anında güncelle
             particles.forEach(p => {
                 p.color = newPalette[Math.floor(Math.random() * newPalette.length)];
             });
@@ -1712,11 +1714,11 @@
         finalUIShown = false;
         animateParticles();
         
-        // Renk paleti wrapper'ını göster
-        const paletteWrapper = document.getElementById('palette-wrapper');
-        if (paletteWrapper) {
-            paletteWrapper.removeAttribute('hidden');
-            setTimeout(() => paletteWrapper.style.opacity = '1', 100);
+        // Yeni paleti göster
+        const paletteMaster = document.getElementById('palette-master-container');
+        if (paletteMaster) {
+            paletteMaster.removeAttribute('hidden');
+            setTimeout(() => paletteMaster.style.opacity = '1', 100);
         }
         
         // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
@@ -1829,6 +1831,13 @@
         clearParticleSequence();
         popup.style.opacity = '0';
         popup.style.transition = 'opacity 0.5s ease';
+        
+        // Renk paletini de gizle
+        const paletteMaster = document.getElementById('palette-master-container');
+        if (paletteMaster) {
+            paletteMaster.style.opacity = '0';
+            setTimeout(() => paletteMaster.setAttribute('hidden', ''), 500);
+        }
         
         setTimeout(() => {
             popup.setAttribute('hidden', '');

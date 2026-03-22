@@ -2811,6 +2811,106 @@ body::after {
 @keyframes cssload-heartR { 40% { transform: scale(0.4) translate(15px, -15px); } }
 @keyframes cssload-shadow { 50% { transform: scale(0.5); background-color: rgba(255, 255, 255, 0.05); } }
 
+/* ULTRA TEMİZ YENİ RENK PALETİ SİSTEMİ - BODY SEVİYESİ */
+.palette-master-container {
+    position: fixed !important;
+    left: 20px;
+    bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 2000000 !important; /* BODY seviyesinde en üstte */
+    opacity: 0;
+    pointer-events: auto !important;
+    transition: opacity 0.8s ease;
+}
+
+.palette-trigger-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid #ff2244 !important;
+    color: #fff !important;
+    font-size: 1.6rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 0 25px rgba(255, 34, 68, 0.5) !important;
+    transition: all 0.3s ease !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+
+.palette-trigger-btn.active {
+    transform: rotate(180deg);
+    background: #ff2244 !important;
+}
+
+.palette-content-box {
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 18px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 34, 68, 0.4);
+    backdrop-filter: blur(15px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.palette-content-box.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.color-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.color-dot.active {
+    border-color: #fff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .palette-master-container {
+        left: 15px;
+        bottom: 25px;
+    }
+    
+    .palette-trigger-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+    }
+
+    .palette-content-box {
+        max-width: 60vw;
+        overflow-x: auto;
+        padding: 10px 14px;
+    }
+    
+    .color-dot {
+        width: 20px;
+        height: 20px;
+    }
+}
+
 /* Başarı Animasyonu için Konfeti */
 .valentine-success-confetti {
     position: fixed;

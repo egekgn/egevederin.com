@@ -398,24 +398,6 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
         <canvas id="confetti-canvas" class="anniversary-confetti"></canvas>
         <canvas id="particle-text-canvas" class="anniversary-particle-text"></canvas>
         
-        <!-- RENK PALETİ - Canvas ve Overlay Maskesinin Üzerinde Olmalı -->
-        <div class="color-palette-wrapper" id="palette-wrapper" hidden>
-            <button class="palette-toggle-btn" id="palette-toggle" aria-label="Renk Paletini Aç/Kapat">></button>
-            <div class="color-palette" id="particle-color-palette">
-                <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
-                <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
-                <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
-                <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
-                <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
-                <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
-                <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
-                <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
-                <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
-                <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
-                <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
-            </div>
-        </div>
-
         <div class="anniversary-content-minimal">
             <div class="anniversary-cake">
                 <div class="cake-layer layer-1">
@@ -450,6 +432,24 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
             <input type="text" id="particle-input" placeholder="Bir kelime yaz..." maxlength="20" spellcheck="false">
         </div>
         <button id="anniversary-question-btn" class="anniversary-btn-minimal question-btn" hidden>Soru</button>
+    </div>
+
+    <!-- RENK PALETİ - BODY SEVİYESİNDE (Tıklanabilirlik Garantisi) -->
+    <div id="palette-master-container" class="palette-master-container" hidden>
+        <button id="palette-trigger" class="palette-trigger-btn">></button>
+        <div id="palette-content" class="palette-content-box">
+            <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan"></button>
+            <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Pembe"></button>
+            <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu"></button>
+            <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Mor"></button>
+            <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Mavi"></button>
+            <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
+            <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Yeşil"></button>
+            <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Turuncu"></button>
+            <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Kırmızı"></button>
+            <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın"></button>
+            <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Beyaz"></button>
+        </div>
     </div>
 
     <!-- Soru Modal (Valentine) -->
