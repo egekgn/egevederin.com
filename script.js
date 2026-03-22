@@ -1514,12 +1514,16 @@
         // "seni seviyorum" gibi uzun kelimeler için mobilde fontu mükemmel sığacak şekilde ayarla
         if (logicalWidth < 768) {
             const charCount = text.length;
+            // Kenarlardan 20px (toplam 40px) güvenli boşluk bırak (Padding)
+            const safeWidth = logicalWidth - 40; 
+            
             if (charCount > 10) { // "seni seviyorum" (14 karakter)
-                baseFontSize = logicalWidth / (charCount * 0.55);
-                baseFontSize = Math.min(baseFontSize, 50); // Mobilde uzun cümle için ideal denge
+                // Karakter başına düşen genişliği biraz daha daraltarak S ve M harflerini içeri çekiyoruz
+                baseFontSize = safeWidth / (charCount * 0.62); 
+                baseFontSize = Math.min(baseFontSize, 46); // Maksimum 46px ile sığmayı garanti et
             } else if (charCount > 6) { // "seviyorum" (9 karakter)
-                baseFontSize = logicalWidth / (charCount * 0.65);
-                baseFontSize = Math.min(baseFontSize, 70);
+                baseFontSize = safeWidth / (charCount * 0.7);
+                baseFontSize = Math.min(baseFontSize, 65);
             }
         }
         
@@ -1724,10 +1728,7 @@
         const paletteMaster = document.getElementById('palette-master-container');
         if (paletteMaster) {
             paletteMaster.removeAttribute('hidden');
-            // CSS'deki .visible class'ını ekleyerek hem opacity hem visibility ayarla
-            setTimeout(() => {
-                paletteMaster.classList.add('visible');
-            }, 100);
+            // CSS [hidden] selector ile kontrol ediliyor
         }
         
         // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
