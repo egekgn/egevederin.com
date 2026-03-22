@@ -72,7 +72,16 @@
         }
     }
 
-    function draw() {
+    let lastDrawTime = 0;
+    const fpsInterval = 1000 / 45; // 45 FPS matrix rain için ideal
+
+    function draw(timestamp) {
+        if (timestamp - lastDrawTime < fpsInterval) {
+            animationFrameId = requestAnimationFrame(draw);
+            return;
+        }
+        lastDrawTime = timestamp;
+
         // fade the canvas slightly to create trails
         ctx.fillStyle = 'rgba(5, 7, 10, 0.14)';
         ctx.fillRect(0, 0, width, height);
@@ -100,7 +109,7 @@
 
     function start() {
         cancelAnimationFrame(animationFrameId);
-        draw();
+        animationFrameId = requestAnimationFrame(draw);
     }
 
     // Resize event'ini debounce et (mobilde çok sık tetiklenmesini önle)
@@ -1347,10 +1356,15 @@
 
     // Mouse position for particle interaction
     const mouse = { x: null, y: null, radius: 100 };
-    particleCanvas.addEventListener('mousemove', (e) => {
+    
+    function updateMousePos(clientX, clientY) {
         const rect = particleCanvas.getBoundingClientRect();
-        mouse.x = e.clientX - rect.left;
-        mouse.y = e.clientY - rect.top;
+        mouse.x = clientX - rect.left;
+        mouse.y = clientY - rect.top;
+    }
+
+    particleCanvas.addEventListener('mousemove', (e) => {
+        updateMousePos(e.clientX, e.clientY);
         
         // Sadece pop-up aktifken ve particle-active class'ı varken tetikle
         if (!popup.hasAttribute('hidden') && popup.classList.contains('particle-active')) {
@@ -1358,14 +1372,29 @@
         }
     });
     
-    // Tıklama veya dokunma ile de tetikle
-    particleCanvas.addEventListener('mousedown', () => {
+    // Dokunmatik etkileşim desteği (touch events)
+    particleCanvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            updateMousePos(e.touches[0].clientX, e.touches[0].clientY);
+        }
         if (canTriggerFinalUI && !finalUIShown) {
             showFinalUI();
         }
-    });
+    }, { passive: true });
+
+    particleCanvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            updateMousePos(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    particleCanvas.addEventListener('touchend', () => {
+        mouse.x = null;
+        mouse.y = null;
+    }, { passive: true });
     
-    particleCanvas.addEventListener('touchstart', (e) => {
+    // Tıklama ile de tetikle
+    particleCanvas.addEventListener('mousedown', () => {
         if (canTriggerFinalUI && !finalUIShown) {
             showFinalUI();
         }
@@ -1386,7 +1415,10 @@
                 this.opacity = Math.random() * 0.5 + 0.5;
             }
             
-            this.size = Math.random() * 1.5 + 0.5;
+            // Ekran genişliğine göre tanecik boyutunu ölçeklendir
+            const screenScale = Math.min(window.innerWidth / 1200, 1);
+            this.size = (Math.random() * 1.5 + 0.5) * (screenScale < 0.5 ? 0.8 : 1);
+            
             this.baseX = x;
             this.baseY = y;
             
@@ -1430,23 +1462,27 @@
             }
             
             // Hafif parlama efekti (sparkle)
-            this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005; // Shimmer'ı biraz daha sakinleştirelim ki renk sönmesin
+            this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005;
 
-            // FARE ETKİLEŞİMİ (Sadece hız ekler)
-            let dx = mouse.x - this.x;
-            let dy = mouse.y - this.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < mouse.radius) {
-                let force = (mouse.radius - distance) / mouse.radius;
-                let angle = Math.atan2(dy, dx);
-                // Fare kuvvetini biraz daha hafifletelim
-                this.vx += Math.cos(angle) * force * this.density * -0.8;
-                this.vy += Math.sin(angle) * force * this.density * -0.8;
+            // FARE ETKİLEŞİMİ (Sadece hız ekler) - Performans için optimize edildi (Squared distance)
+            if (mouse.x !== null && mouse.y !== null) {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distanceSq = dx * dx + dy * dy;
+                let radiusSq = mouse.radius * mouse.radius;
                 
-                // PARÇACIK DAĞITILINCA UI GÖSTER
-                if (canTriggerFinalUI && !finalUIShown) {
-                    showFinalUI();
+                if (distanceSq < radiusSq) {
+                    let distance = Math.sqrt(distanceSq);
+                    let force = (mouse.radius - distance) / mouse.radius;
+                    let angle = Math.atan2(dy, dx);
+                    // Fare kuvvetini biraz daha hafifletelim
+                    this.vx += Math.cos(angle) * force * this.density * -0.8;
+                    this.vy += Math.sin(angle) * force * this.density * -0.8;
+                    
+                    // PARÇACIK DAĞITILINCA UI GÖSTER
+                    if (canTriggerFinalUI && !finalUIShown) {
+                        showFinalUI();
+                    }
                 }
             }
 
@@ -1601,13 +1637,18 @@
         });
     });
 
-    function animateParticles() {
+    function animateParticles(time) {
         pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-        particles = particles.filter(p => p.y > -100 || p.active);
-        particles.forEach(p => {
-            p.draw();
-            p.update();
-        });
+        
+        // Sadece ekranda olan veya aktif olan partikülleri çiz
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            if (p.active) {
+                p.draw();
+                p.update();
+            }
+        }
+        
         particleAnimationId = requestAnimationFrame(animateParticles);
     }
 
@@ -1615,6 +1656,9 @@
         if (!canTriggerFinalUI || finalUIShown) return;
         finalUIShown = true;
         popup.classList.add('ui-visible');
+        
+        // UI göründüğünde mouse etkileşimini biraz daha yumuşat
+        mouse.radius = 120;
     }
 
     function startParticlePhase() {
@@ -1626,20 +1670,21 @@
         finalUIShown = false;
         animateParticles();
         
-        // "seni" - Artık "seviyorum" gibi yukarıdan dökülecek
-        setTimeout(() => initParticleText('seni', 'drop'), 600);
+        // Animasyon süreleri optimize edildi (İnternet hızına ve font yüklenmesine göre)
+        // "seni" - Daha yavaş oluşması için süreyi artırdık
+        setTimeout(() => initParticleText('seni', 'drop'), 800);
         
-        // "seviyorum" - Kum gibi yukarıdan dökülsün
+        // "seviyorum" - "seni" kelimesinin tam oluşması için bekliyoruz (5 saniye sonra)
         setTimeout(() => {
             initParticleText('seviyorum', 'drop');
-        }, 4400);
+        }, 5800);
         
-        // Final "seni seviyorum" - Yanlardan birleşerek oluşsun
+        // Final "seni seviyorum" - (6 saniye sonra)
         setTimeout(() => {
             initParticleText('seni seviyorum', 'sides');
             // Yazı oluşmaya başladığı an etkileşim aktif olsun
             canTriggerFinalUI = true;
-        }, 8400);
+        }, 11800);
     }
 
     class Confetto {
@@ -1968,8 +2013,16 @@
         }
     });
     
-    // Kontrolü çalıştır
-    checkDate();
+    // Kontrolü çalıştır - Tüm fontlar ve scriptler yüklendikten sonra (Senkronizasyon)
+    window.addEventListener('load', () => {
+        if (document.fonts) {
+            document.fonts.ready.then(() => {
+                setTimeout(checkDate, 500); // Fontlar tam render edilsin
+            });
+        } else {
+            setTimeout(checkDate, 500);
+        }
+    });
 })();
 
 // Gizli Buton ve Kartpostal
