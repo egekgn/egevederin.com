@@ -1511,13 +1511,19 @@
         // Mobilde font boyutunu daha okunabilir yapmak için ölçeklendirme güncellendi
         let baseFontSize = logicalWidth < 768 ? Math.min(logicalWidth / 5.5, 90) : Math.min(logicalWidth / 8, 120);
         
-        // "seni seviyorum" gibi uzun kelimeler için mobilde fontu biraz daha küçült ki ekrana sığsın
-        if (logicalWidth < 768 && text.length > 8) {
-            baseFontSize = logicalWidth / (text.length * 0.7);
-            baseFontSize = Math.min(baseFontSize, 65); // Maksimum 65px sınırı
+        // "seni seviyorum" gibi uzun kelimeler için mobilde fontu mükemmel sığacak şekilde ayarla
+        if (logicalWidth < 768) {
+            const charCount = text.length;
+            if (charCount > 10) { // "seni seviyorum" (14 karakter)
+                baseFontSize = logicalWidth / (charCount * 0.55);
+                baseFontSize = Math.min(baseFontSize, 50); // Mobilde uzun cümle için ideal denge
+            } else if (charCount > 6) { // "seviyorum" (9 karakter)
+                baseFontSize = logicalWidth / (charCount * 0.65);
+                baseFontSize = Math.min(baseFontSize, 70);
+            }
         }
         
-        const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
+        const fontSize = (logicalWidth < 768 && text.length > 10) ? baseFontSize : (text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize);
         pCtx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
         pCtx.textAlign = 'center';
         pCtx.textBaseline = 'middle';
@@ -1718,7 +1724,10 @@
         const paletteMaster = document.getElementById('palette-master-container');
         if (paletteMaster) {
             paletteMaster.removeAttribute('hidden');
-            setTimeout(() => paletteMaster.style.opacity = '1', 100);
+            // CSS'deki .visible class'ını ekleyerek hem opacity hem visibility ayarla
+            setTimeout(() => {
+                paletteMaster.classList.add('visible');
+            }, 100);
         }
         
         // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
@@ -1835,7 +1844,7 @@
         // Renk paletini de gizle
         const paletteMaster = document.getElementById('palette-master-container');
         if (paletteMaster) {
-            paletteMaster.style.opacity = '0';
+            paletteMaster.classList.remove('visible');
             setTimeout(() => paletteMaster.setAttribute('hidden', ''), 500);
         }
         

@@ -2814,15 +2814,22 @@ body::after {
 /* ULTRA TEMİZ YENİ RENK PALETİ SİSTEMİ - BODY SEVİYESİ */
 .palette-master-container {
     position: fixed !important;
-    left: 20px;
-    bottom: 30px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    left: 20px !important;
+    bottom: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
     z-index: 2000000 !important; /* BODY seviyesinde en üstte */
     opacity: 0;
+    visibility: hidden;
     pointer-events: auto !important;
-    transition: opacity 0.8s ease;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+/* Sadece partikül fazında veya görünür olduğunda aktifleşsin */
+.palette-master-container.visible {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .palette-trigger-btn {
