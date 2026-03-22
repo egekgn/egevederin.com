@@ -2374,28 +2374,30 @@ body::after {
     display: flex;
     align-items: center;
     gap: 15px;
-    z-index: 10007;
+    z-index: 10010 !important; /* Diğer her şeyin üzerine çıkar */
     opacity: 0;
-    pointer-events: none;
+    pointer-events: auto !important; /* Tıklanabilirliği garanti et */
     transition: opacity 0.8s ease;
 }
 
 .palette-toggle-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px; /* Biraz büyüttüm kolay tıklansın */
+    height: 44px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 34, 68, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 34, 68, 0.6);
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     backdrop-filter: blur(5px);
-    z-index: 10008;
-    box-shadow: 0 0 15px rgba(255, 34, 68, 0.2);
+    z-index: 10011 !important;
+    box-shadow: 0 0 20px rgba(255, 34, 68, 0.3);
+    pointer-events: auto !important;
+    touch-action: manipulation;
 }
 
 .palette-toggle-btn:hover {

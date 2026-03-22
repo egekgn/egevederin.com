@@ -1509,7 +1509,14 @@
         // Fontun yüklendiğinden emin olmak için tekrar set et
         pCtx.fillStyle = 'white';
         // Mobilde font boyutunu daha okunabilir yapmak için ölçeklendirme güncellendi
-        const baseFontSize = logicalWidth < 768 ? Math.min(logicalWidth / 5.5, 90) : Math.min(logicalWidth / 8, 120);
+        let baseFontSize = logicalWidth < 768 ? Math.min(logicalWidth / 5.5, 90) : Math.min(logicalWidth / 8, 120);
+        
+        // "seni seviyorum" gibi uzun kelimeler için mobilde fontu biraz daha küçült ki ekrana sığsın
+        if (logicalWidth < 768 && text.length > 8) {
+            baseFontSize = logicalWidth / (text.length * 0.7);
+            baseFontSize = Math.min(baseFontSize, 65); // Maksimum 65px sınırı
+        }
+        
         const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
         pCtx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
         pCtx.textAlign = 'center';
