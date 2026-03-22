@@ -46,6 +46,7 @@
             <a href="#galeri">Galeri</a>
             <a href="#sarkimiz">Şarkımız</a>
             <a href="#notlar">Notlar</a>
+            <a href="#" id="nav-game-btn">Oyun</a>
         </nav>
         <button class="nav-toggle" id="nav-toggle" aria-label="Menüyü aç/kapat">
             <span></span>
@@ -388,6 +389,96 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
         <button class="photo-viewer__next" type="button" aria-label="Sonraki" data-photo-viewer-next>›</button>
         <div class="photo-viewer__image-container" data-photo-viewer-image>
             <!-- Büyütülmüş fotoğraf buraya eklenecek -->
+        </div>
+    </div>
+
+    <!-- Yıldönümü Pop-up -->
+    <div id="anniversary-popup" class="anniversary-overlay" hidden>
+        <button class="section-modal__close" id="anniversary-close" type="button" aria-label="Kapat">✕</button>
+        <canvas id="confetti-canvas" class="anniversary-confetti"></canvas>
+        <canvas id="particle-text-canvas" class="anniversary-particle-text"></canvas>
+        <div class="anniversary-content-minimal">
+            <div class="anniversary-cake">
+                <div class="cake-layer layer-1">
+                    <div class="chocolate-wave">
+                        <div class="yellow-dots"></div>
+                    </div>
+                    <div class="swirl-pattern"></div>
+                </div>
+                <div class="cake-layer layer-2">
+                    <div class="zigzag-pattern"></div>
+                    <div class="swirl-pattern"></div>
+                </div>
+                <div class="cake-layer layer-3">
+                    <div class="dotted-band"></div>
+                    <div class="swirl-pattern"></div>
+                    <div class="cherries">
+                        <div class="cherry cherry-1"></div>
+                        <div class="cherry cherry-2"></div>
+                        <div class="cherry cherry-3"></div>
+                        <div class="cherry cherry-4"></div>
+                    </div>
+                </div>
+                <div class="candle" title="Üflemek için muma tıkla!">
+                    <div class="flame"></div>
+                </div>
+            </div>
+            <h2 class="anniversary-title-minimal" id="anniversary-title">Mutlu Yıldönümleri! ❤️</h2>
+            <p class="anniversary-text-minimal">Hayatımızın en güzel 8 yılı geride kaldı. Seninle geçen her an benim için paha biçilemez.</p>
+            <button class="anniversary-btn-minimal" id="anniversary-continue">Devamını oku →</button>
+        </div>
+        <div class="color-palette" id="particle-color-palette" hidden>
+            <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
+            <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
+            <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
+            <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
+            <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
+            <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
+            <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
+            <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
+            <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
+            <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
+            <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
+        </div>
+        <div id="particle-input-container" class="anniversary-input-wrapper" hidden>
+            <input type="text" id="particle-input" placeholder="Bir kelime yaz..." maxlength="20" spellcheck="false">
+        </div>
+        <button id="anniversary-question-btn" class="anniversary-btn-minimal question-btn" hidden>Soru</button>
+    </div>
+
+    <!-- Soru Modal (Valentine) -->
+    <div id="valentine-modal" class="valentine-overlay" hidden>
+        <button class="section-modal__close" id="valentine-close" type="button" aria-label="Kapat">✕</button>
+        <div class="valentine-card">
+            <!-- Soru Alanı -->
+            <div class="question-container js-question-container">
+                <video class="local-gif" autoplay loop muted playsinline>
+                    <source src="Love me.mp4" type="video/mp4">
+                </video>
+                <h2 class="question">Beni seviyor musun? ❤️</h2>
+                <div class="button-container">
+                    <button class="btn yes-btn js-yes-btn">Evet!</button>
+                    <button class="btn no-btn js-no-btn">Hayır :(</button>
+                </div>
+            </div>
+
+            <!-- Kalp Yükleniyor (Loader) -->
+            <div class="cssload-main js-heart-loader">
+                <div class="cssload-heart">
+                    <div class="cssload-heartL"></div>
+                    <div class="cssload-heartR"></div>
+                    <div class="cssload-square"></div>
+                </div>
+                <div class="cssload-shadow"></div>
+            </div>
+
+            <!-- Sonuç Alanı -->
+            <div class="result-container js-result-container">
+                <video class="local-gif gif-result js-gif-result" loop muted playsinline>
+                    <source src="Reply me love.mp4" type="video/mp4">
+                </video>
+                <h2>Biliyorum sıpa, ben de seni çok seviyorum ❤️</h2>
+            </div>
         </div>
     </div>
 
