@@ -2337,6 +2337,8 @@ body::after {
     display: none; /* İlk başta gizli */
     opacity: 0;
     transition: opacity 0.8s ease;
+    will-change: transform, opacity;
+    transform: translateZ(0);
 }
 
 .anniversary-overlay.particle-active .anniversary-particle-text {

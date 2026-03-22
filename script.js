@@ -1417,9 +1417,8 @@
             }
             
             // Ekran genişliğine göre tanecik boyutunu ölçeklendir
-            // Tanecik boyutu %50 yoğunluk azalması için biraz büyütüldü (1.5 + 0.5 -> 2.5 + 1.0)
             const screenScale = Math.min(window.innerWidth / 1200, 1);
-            this.size = (Math.random() * 2.5 + 1.0) * (screenScale < 0.5 ? 0.8 : 1);
+            this.size = (Math.random() * 2.8 + 1.2) * (screenScale < 0.5 ? 0.95 : 1);
             
             this.baseX = x;
             this.baseY = y;
@@ -1428,28 +1427,13 @@
             const currentPalette = allColorThemes[activeTheme] || anniversaryColors;
             this.color = currentPalette[Math.floor(Math.random() * currentPalette.length)];
             this.active = true;
-            this.vx = 0; // Hız sadece dış kuvvetler (fare) için
+            this.vx = 0; 
             this.vy = 0;
-            this.friction = 0.75; // Çok daha güçlü sürtünme (titreşimi önler)
-            this.ease = 0.025; // Sabit ve yavaş, asil bir yerleşme hızı
+            this.friction = 0.75; 
+            this.ease = 0.025; 
             
             this.targetOpacity = Math.random() * 0.3 + 0.7;
             this.shimmerSpeed = Math.random() * 0.02 + 0.005;
-        }
-
-        draw() {
-            if (!this.active) return;
-            pCtx.fillStyle = this.color;
-            pCtx.globalAlpha = this.opacity;
-            pCtx.beginPath();
-            if (Math.random() > 0.5) {
-                pCtx.rect(this.x, this.y, this.size, this.size);
-            } else {
-                pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            }
-            pCtx.closePath();
-            pCtx.fill();
-            pCtx.globalAlpha = 1.0;
         }
 
         update() {
@@ -1460,51 +1444,44 @@
 
             // Opaklık animasyonu
             if (this.opacity < this.targetOpacity) {
-                this.opacity += 0.015; // Daha hızlı oluşma
+                this.opacity += 0.015;
             }
             
-            // Hafif parlama efekti (sparkle)
-            this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005;
+            // Shimmer mobilde kapalı
+            if (window.innerWidth >= 768) {
+                this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005;
+            }
 
-            // FARE ETKİLEŞİMİ (Sadece hız ekler) - Performans için optimize edildi (Squared distance)
-            if (mouse.x !== null && mouse.y !== null) {
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distanceSq = dx * dx + dy * dy;
-                let radiusSq = mouse.radius * mouse.radius;
+            // FARE ETKİLEŞİMİ (Ultra Optimize)
+            if (mouse.x !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distanceSq = dx * dx + dy * dy;
+                const radiusSq = mouse.radius * mouse.radius;
                 
                 if (distanceSq < radiusSq) {
-                    let distance = Math.sqrt(distanceSq);
-                    let force = (mouse.radius - distance) / mouse.radius;
-                    let angle = Math.atan2(dy, dx);
-                    // Fare kuvvetini biraz daha hafifletelim
-                    this.vx += Math.cos(angle) * force * this.density * -0.8;
-                    this.vy += Math.sin(angle) * force * this.density * -0.8;
+                    const distance = Math.sqrt(distanceSq);
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    const invDist = 1 / (distance || 1);
+                    const forceDensity = force * this.density * -0.8;
                     
-                    // PARÇACIK DAĞITILINCA UI GÖSTER
+                    this.vx += dx * invDist * forceDensity;
+                    this.vy += dy * invDist * forceDensity;
+                    
                     if (canTriggerFinalUI && !finalUIShown) {
                         showFinalUI();
                     }
                 }
             }
 
-            // Sürtünmeyi uygula (Hızı hızla söndürür)
             this.vx *= this.friction;
             this.vy *= this.friction;
             
-            // Hızı pozisyona ekle
-            this.x += this.vx;
-            this.y += this.vy;
-
-            // HEDEFE YÖNELME (Pure Lerp): Hiçbir zaman hedefin üzerinden geçmez, titreşimi sıfırlar.
-            let dx_base = this.baseX - this.x;
-            let dy_base = this.baseY - this.y;
+            this.x += this.vx + (this.baseX - this.x) * this.ease;
+            this.y += this.vy + (this.baseY - this.y) * this.ease;
             
-            this.x += dx_base * this.ease;
-            this.y += dy_base * this.ease;
-            
-            // Hedefe çok yaklaştığında hızı tamamen sıfırla (mikro titreşimleri önlemek için)
-            if (Math.abs(dx_base) < 0.1 && Math.abs(dy_base) < 0.1) {
+            // Titreşim önleme (snap to base)
+            if (Math.abs(this.baseX - this.x) < 0.1 && Math.abs(this.baseY - this.y) < 0.1) {
                 this.x = this.baseX;
                 this.y = this.baseY;
                 this.vx = 0;
@@ -1531,7 +1508,8 @@
         
         // Fontun yüklendiğinden emin olmak için tekrar set et
         pCtx.fillStyle = 'white';
-        const baseFontSize = Math.min(logicalWidth / 8, 120);
+        // Mobilde font boyutunu daha okunabilir yapmak için ölçeklendirme güncellendi
+        const baseFontSize = logicalWidth < 768 ? Math.min(logicalWidth / 5.5, 90) : Math.min(logicalWidth / 8, 120);
         const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
         pCtx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
         pCtx.textAlign = 'center';
@@ -1543,9 +1521,8 @@
         pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
 
         const newPositions = [];
-        // Tanecik yoğunluğu (step) dpr ile çarpılmamalı, dpr'a göre ölçeklenmeli
-        // Hedef: Her ~3-4 mantıksal pikselde bir tanecik (Retina ekranlarda daha sık örnekleme)
-        const step = logicalWidth < 768 ? 4 : 3; 
+        // Tanecik yoğunluğu (step) mobilde okunabilirliği artırmak için düşürüldü (daha sık tanecik)
+        const step = logicalWidth < 768 ? 3 : 3; 
         
         for (let y = 0; y < data.height; y += step * dpr) {
             for (let x = 0; x < data.width; x += step * dpr) {
@@ -1658,13 +1635,33 @@
     function animateParticles(time) {
         pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
         
-        // Sadece ekranda olan veya aktif olan partikülleri çiz
-        for (let i = 0; i < particles.length; i++) {
+        // ULTRA PERFORMANS: Renk gruplama (Batch Rendering)
+        const groups = {};
+        
+        for (let i = 0, len = particles.length; i < len; i++) {
             const p = particles[i];
-            if (p.active) {
-                p.draw();
-                p.update();
+            if (!p.active) continue;
+            
+            p.update();
+            
+            // Renk grubuna ekle
+            if (!groups[p.color]) groups[p.color] = [];
+            groups[p.color].push(p);
+        }
+        
+        // Her renk grubunu tek bir path ile çiz
+        for (const color in groups) {
+            pCtx.fillStyle = color;
+            pCtx.beginPath();
+            const group = groups[color];
+            for (let i = 0, len = group.length; i < len; i++) {
+                const p = group[i];
+                // Sadece globalAlpha değiştirmek yerine opacity'yi renk ile yönetmek daha hızlı olabilir 
+                // ama şimdilik globalAlpha'yı her grup için sabit tutalım (veya ortalama alalım)
+                pCtx.moveTo(p.x + p.size, p.y);
+                pCtx.arc(p.x, p.y, p.size, 0, 6.28318); // 2 * PI sabitlendi
             }
+            pCtx.fill();
         }
         
         particleAnimationId = requestAnimationFrame(animateParticles);
@@ -1700,17 +1697,17 @@
         particleSequenceTimeouts.push(setTimeout(() => {
             initParticleText('seni', 'drop');
             
-            // 2. "seviyorum" (8 saniye sonra)
+            // 2. "seviyorum" (10 saniye sonra - Seni kelimesinin ekranda kalma süresi uzatıldı)
             particleSequenceTimeouts.push(setTimeout(() => {
                 initParticleText('seviyorum', 'drop');
                 
-                // 3. "seni seviyorum" (8 saniye sonra)
+                // 3. "seni seviyorum" (10 saniye sonra)
                 particleSequenceTimeouts.push(setTimeout(() => {
                     initParticleText('seni seviyorum', 'sides');
                     canTriggerFinalUI = true;
-                }, 8000));
+                }, 10000));
                 
-            }, 8000));
+            }, 10000));
             
         }, 1000));
     }
