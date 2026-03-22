@@ -1612,6 +1612,16 @@
     }
 
     // Renk Paleti Mantığı
+    const paletteToggle = document.getElementById('palette-toggle');
+    const colorPalette = document.getElementById('particle-color-palette');
+    
+    if (paletteToggle && colorPalette) {
+        paletteToggle.addEventListener('click', () => {
+            const isOpen = colorPalette.classList.toggle('open');
+            paletteToggle.classList.toggle('active', isOpen);
+        });
+    }
+
     const colorDots = document.querySelectorAll('.color-dot');
     colorDots.forEach(dot => {
         dot.addEventListener('click', () => {
@@ -1672,6 +1682,9 @@
         finalUIShown = true;
         popup.classList.add('ui-visible');
         
+        // UI göründüğünde paleti otomatik açabiliriz veya sadece butonu gösteririz
+        // Şimdilik sadece butonun görünürlüğünü ana CSS üzerinden yönetiyoruz
+        
         // UI göründüğünde mouse etkileşimini biraz daha yumuşat
         mouse.radius = 120;
     }
@@ -1691,6 +1704,13 @@
         canTriggerFinalUI = false;
         finalUIShown = false;
         animateParticles();
+        
+        // Renk paleti wrapper'ını göster
+        const paletteWrapper = document.getElementById('palette-wrapper');
+        if (paletteWrapper) {
+            paletteWrapper.removeAttribute('hidden');
+            setTimeout(() => paletteWrapper.style.opacity = '1', 100);
+        }
         
         // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
         // 1. "seni"
@@ -1885,6 +1905,7 @@
             const valentineClose = document.getElementById('valentine-close');
             const questionContainer = valentineModal.querySelector(".js-question-container");
             const resultContainer = valentineModal.querySelector(".js-result-container");
+            const gifQuestion = valentineModal.querySelector(".js-gif-question");
             const gifResult = valentineModal.querySelector(".js-gif-result");
             const heartLoader = valentineModal.querySelector(".js-heart-loader");
             const yesBtn = valentineModal.querySelector(".js-yes-btn");
@@ -1895,6 +1916,15 @@
             // Modal'ı göster ve sıfırla
             valentineModal.removeAttribute('hidden');
             valentineModal.style.opacity = '1';
+            
+            // Videoları mobilde manuel olarak oynat (autoplay bazen engellenir)
+            if (gifQuestion) {
+                gifQuestion.load();
+                gifQuestion.play().catch(e => console.log("Video autoplay blocked:", e));
+            }
+            if (gifResult) {
+                gifResult.load(); // İkinci videoyu önceden yükle
+            }
             
             // Ana pop-up'ı tamamen gizle (siteyi görebilmek için)
             popup.classList.add('valentine-active');

@@ -2367,42 +2367,101 @@ body::after {
     transition: opacity 0.8s ease;
 }
 
-.color-palette {
+.color-palette-wrapper {
     position: absolute;
-    left: 30px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 20px;
+    bottom: 40px;
     display: flex;
-    flex-direction: column; /* Dikey yap */
+    align-items: center;
     gap: 15px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 20px 12px;
-    border-radius: 30px;
-    border: 1px solid rgba(255, 34, 68, 0.3);
-    backdrop-filter: blur(10px);
     z-index: 10007;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.8s ease;
 }
 
+.palette-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 34, 68, 0.5);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
+    z-index: 10008;
+    box-shadow: 0 0 15px rgba(255, 34, 68, 0.2);
+}
+
+.palette-toggle-btn:hover {
+    background: rgba(255, 34, 68, 0.2);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.palette-toggle-btn.active {
+    transform: rotate(180deg);
+    background: rgba(255, 34, 68, 0.4);
+}
+
+.color-palette {
+    display: flex;
+    flex-direction: row; /* Yatay yap */
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 34, 68, 0.3);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.color-palette.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
 /* Mobil için palet konumu */
 @media (max-width: 768px) {
+    .color-palette-wrapper {
+        left: 15px;
+        bottom: 30px;
+        gap: 10px;
+    }
+    
+    .palette-toggle-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
     .color-palette {
-        left: 10px;
-        padding: 12px 8px;
-        gap: 8px;
-        transform: translateY(-50%) scale(0.9); /* Biraz küçültelim */
+        padding: 8px 12px;
+        gap: 6px;
+        max-width: 70vw;
+        overflow-x: auto; /* Çok fazla renk varsa kaydırılabilir olsun */
+        scrollbar-width: none;
+    }
+    
+    .color-palette::-webkit-scrollbar {
+        display: none;
     }
     
     .color-dot {
-        width: 20px;
-        height: 20px;
-    }
-
-    .anniversary-input-wrapper {
-        bottom: 15%; /* Sabit bir bottom yerine yüzde kullanalım */
-        transition: bottom 0.3s ease, opacity 0.8s ease;
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
     }
 
     /* Klavye açıldığında veya input focus olduğunda yukarı taşı */
@@ -2644,10 +2703,41 @@ body::after {
     display: none;
 }
 
-.result-container h2 {
+.result-container h2, .result-text {
     font-size: 2.2rem;
     color: var(--text);
     font-weight: 800;
+    text-align: center;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .valentine-card {
+        padding: 25px 15px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .local-gif {
+        max-width: 200px; /* Mobilde GIF'leri küçült */
+        margin-bottom: 1.5rem;
+    }
+
+    .question, .result-container h2, .result-text {
+        font-size: 1.4rem; /* Mobilde başlıkları küçült */
+        margin-bottom: 1.5rem;
+    }
+
+    .button-container {
+        gap: 1rem;
+        flex-direction: row; /* Butonları yan yana tutmaya çalış */
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 10px;
+    }
 }
 
 /* heart loader */

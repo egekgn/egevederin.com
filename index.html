@@ -427,18 +427,21 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
             <p class="anniversary-text-minimal">Hayatımızın en güzel 8 yılı geride kaldı. Seninle geçen her an benim için paha biçilemez.</p>
             <button class="anniversary-btn-minimal" id="anniversary-continue">Devamını oku →</button>
         </div>
-        <div class="color-palette" id="particle-color-palette" hidden>
-            <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
-            <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
-            <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
-            <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
-            <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
-            <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
-            <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
-            <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
-            <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
-            <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
-            <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
+        <div class="color-palette-wrapper" id="palette-wrapper" hidden>
+            <button class="palette-toggle-btn" id="palette-toggle" title="Renk Paleti">></button>
+            <div class="color-palette" id="particle-color-palette">
+                <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
+                <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
+                <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
+                <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
+                <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
+                <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
+                <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
+                <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
+                <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
+                <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
+                <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
+            </div>
         </div>
         <div id="particle-input-container" class="anniversary-input-wrapper" hidden>
             <input type="text" id="particle-input" placeholder="Bir kelime yaz..." maxlength="20" spellcheck="false">
@@ -452,7 +455,7 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
         <div class="valentine-card">
             <!-- Soru Alanı -->
             <div class="question-container js-question-container">
-                <video class="local-gif" autoplay loop muted playsinline>
+                <video class="local-gif js-gif-question" autoplay loop muted playsinline preload="auto">
                     <source src="Love me.mp4" type="video/mp4">
                 </video>
                 <h2 class="question">Beni seviyor musun? ❤️</h2>
@@ -474,10 +477,10 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
 
             <!-- Sonuç Alanı -->
             <div class="result-container js-result-container">
-                <video class="local-gif gif-result js-gif-result" loop muted playsinline>
+                <video class="local-gif gif-result js-gif-result" loop muted playsinline preload="auto">
                     <source src="Reply me love.mp4" type="video/mp4">
                 </video>
-                <h2>Biliyorum sıpa, ben de seni çok seviyorum ❤️</h2>
+                <h2 class="result-text">Biliyorum sıpa, ben de seni çok seviyorum ❤️</h2>
             </div>
         </div>
     </div>
