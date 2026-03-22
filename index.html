@@ -397,6 +397,25 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
         <button class="section-modal__close" id="anniversary-close" type="button" aria-label="Kapat">✕</button>
         <canvas id="confetti-canvas" class="anniversary-confetti"></canvas>
         <canvas id="particle-text-canvas" class="anniversary-particle-text"></canvas>
+        
+        <!-- RENK PALETİ - Canvas ve Overlay Maskesinin Üzerinde Olmalı -->
+        <div class="color-palette-wrapper" id="palette-wrapper" hidden>
+            <button class="palette-toggle-btn" id="palette-toggle" aria-label="Renk Paletini Aç/Kapat">></button>
+            <div class="color-palette" id="particle-color-palette">
+                <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
+                <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
+                <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
+                <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
+                <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
+                <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
+                <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
+                <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
+                <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
+                <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
+                <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
+            </div>
+        </div>
+
         <div class="anniversary-content-minimal">
             <div class="anniversary-cake">
                 <div class="cake-layer layer-1">
@@ -426,22 +445,6 @@ Hayatımda en çok geriye dönüp düzeltmek istediğim şeylerden biri o zamanl
             <h2 class="anniversary-title-minimal" id="anniversary-title">Mutlu Yıldönümleri! ❤️</h2>
             <p class="anniversary-text-minimal">Hayatımızın en güzel 8 yılı geride kaldı. Seninle geçen her an benim için paha biçilemez.</p>
             <button class="anniversary-btn-minimal" id="anniversary-continue">Devamını oku →</button>
-        </div>
-        <div class="color-palette-wrapper" id="palette-wrapper" hidden>
-            <button class="palette-toggle-btn" id="palette-toggle" title="Renk Paleti">></button>
-            <div class="color-palette" id="particle-color-palette">
-                <button class="color-dot active" data-theme="default" style="background: linear-gradient(45deg, #ff2244, #ffffff, #ffd700);" title="Varsayılan (Karışık)"></button>
-                <button class="color-dot" data-theme="vibrant_pink" style="background: #ff0054;" title="Muhteşem Pembe"></button>
-                <button class="color-dot" data-theme="pink" style="background: #ff00ff;" title="Fosforlu Pembe"></button>
-                <button class="color-dot" data-theme="purple" style="background: #9d00ff;" title="Fosforlu Mor"></button>
-                <button class="color-dot" data-theme="blue" style="background: #00d9ff;" title="Fosforlu Mavi"></button>
-                <button class="color-dot" data-theme="cyan" style="background: #00ffcc;" title="Turkuaz"></button>
-                <button class="color-dot" data-theme="green" style="background: #39ff14;" title="Fosforlu Yeşil"></button>
-                <button class="color-dot" data-theme="orange" style="background: #ff6700;" title="Fosforlu Turuncu"></button>
-                <button class="color-dot" data-theme="red" style="background: #ff0000;" title="Fosforlu Kırmızı"></button>
-                <button class="color-dot" data-theme="gold" style="background: #ffd700;" title="Altın Sarısı"></button>
-                <button class="color-dot" data-theme="white" style="background: #ffffff;" title="Kar Beyazı"></button>
-            </div>
         </div>
         <div id="particle-input-container" class="anniversary-input-wrapper" hidden>
             <input type="text" id="particle-input" placeholder="Bir kelime yaz..." maxlength="20" spellcheck="false">

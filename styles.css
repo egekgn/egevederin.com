@@ -2307,6 +2307,11 @@ body::after {
     transition: background 0.5s ease, opacity 0.5s ease;
 }
 
+/* Partikül fazında karanlık perdeyi palet butonu için geçilebilir yapıyoruz */
+.anniversary-overlay.particle-active::after {
+    z-index: 10005; /* Değer aynı kalabilir çünkü palette-wrapper 10010 */
+}
+
 .anniversary-overlay.lights-off::after {
     background: #000;
     animation: none;
