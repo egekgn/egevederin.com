@@ -1402,9 +1402,10 @@
 
     class Particle {
         constructor(x, y, startX, startY, animationType = 'scatter') {
+            const dpr = window.devicePixelRatio || 1;
             // Başlangıç pozisyonu
-            this.x = startX !== undefined ? startX : Math.random() * particleCanvas.width;
-            this.y = startY !== undefined ? startY : Math.random() * particleCanvas.height;
+            this.x = startX !== undefined ? startX : Math.random() * particleCanvas.width / dpr;
+            this.y = startY !== undefined ? startY : Math.random() * particleCanvas.height / dpr;
             
             // "gradual" ise başlangıç opaklığını 0 yap ve hedefe çok yakın başlat
             if (animationType === 'gradual') {
@@ -1416,8 +1417,9 @@
             }
             
             // Ekran genişliğine göre tanecik boyutunu ölçeklendir
+            // Tanecik boyutu %50 yoğunluk azalması için biraz büyütüldü (1.5 + 0.5 -> 2.5 + 1.0)
             const screenScale = Math.min(window.innerWidth / 1200, 1);
-            this.size = (Math.random() * 1.5 + 0.5) * (screenScale < 0.5 ? 0.8 : 1);
+            this.size = (Math.random() * 2.5 + 1.0) * (screenScale < 0.5 ? 0.8 : 1);
             
             this.baseX = x;
             this.baseY = y;
@@ -1513,29 +1515,42 @@
 
     function initParticleText(text, animationType = 'scatter') {
         if (!text) return;
-        particleCanvas.width = window.innerWidth;
-        particleCanvas.height = window.innerHeight;
+        
+        // Yüksek çözünürlüklü (Retina) render için dpr ayarı
+        const dpr = window.devicePixelRatio || 1;
+        const logicalWidth = window.innerWidth;
+        const logicalHeight = window.innerHeight;
+        
+        particleCanvas.width = logicalWidth * dpr;
+        particleCanvas.height = logicalHeight * dpr;
+        particleCanvas.style.width = logicalWidth + 'px';
+        particleCanvas.style.height = logicalHeight + 'px';
+        
+        pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
         pCtx.fillStyle = 'white';
         
-        const baseFontSize = Math.min(window.innerWidth / 8, 120);
+        const baseFontSize = Math.min(logicalWidth / 8, 120);
         const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
         
         pCtx.font = `800 ${fontSize}px 'JetBrains Mono'`;
         pCtx.textAlign = 'center';
         pCtx.textBaseline = 'middle';
-        pCtx.fillText(text, particleCanvas.width / 2, particleCanvas.height / 2);
+        pCtx.fillText(text, logicalWidth / 2, logicalHeight / 2);
 
-        const data = pCtx.getImageData(0, 0, particleCanvas.width, particleCanvas.height);
-        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        // ImageData dpr ile orantılı boyutta gelir
+        const data = pCtx.getImageData(0, 0, logicalWidth * dpr, logicalHeight * dpr);
+        pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
 
         const newPositions = [];
-        const step = window.innerWidth < 768 ? 3 : 2; // Mobilde daha az partikül ile performans artışı
+        // Tanecik yoğunluğu %50 azaltıldı (step: 2 -> 4 veya 3 -> 5/6)
+        const step = Math.floor((logicalWidth < 768 ? 6 : 4) * dpr);
+        
         for (let y = 0; y < data.height; y += step) {
             for (let x = 0; x < data.width; x += step) {
                 if (data.data[(y * 4 * data.width) + (x * 4) + 3] > 128) {
-                    newPositions.push({ x, y });
+                    newPositions.push({ x: x / dpr, y: y / dpr });
                 }
             }
         }
@@ -1670,21 +1685,21 @@
         finalUIShown = false;
         animateParticles();
         
-        // Animasyon süreleri optimize edildi (İnternet hızına ve font yüklenmesine göre)
-        // "seni" - Daha yavaş oluşması için süreyi artırdık
+        // Dinamik Bekleme Süreleri: Her kelime için en az 6-7 saniye aralık
+        // "seni" - İlk kelime
         setTimeout(() => initParticleText('seni', 'drop'), 800);
         
-        // "seviyorum" - "seni" kelimesinin tam oluşması için bekliyoruz (5 saniye sonra)
+        // "seviyorum" - 'seni' 3 saniye sabit kaldıktan sonra (800ms + 3000ms + animasyon süresi)
         setTimeout(() => {
             initParticleText('seviyorum', 'drop');
-        }, 5800);
+        }, 7500);
         
-        // Final "seni seviyorum" - (6 saniye sonra)
+        // Final "seni seviyorum" - 'seviyorum' 3-4 saniye sabit kaldıktan sonra
         setTimeout(() => {
             initParticleText('seni seviyorum', 'sides');
             // Yazı oluşmaya başladığı an etkileşim aktif olsun
             canTriggerFinalUI = true;
-        }, 11800);
+        }, 14500);
     }
 
     class Confetto {
@@ -2007,8 +2022,12 @@
         } 
         // Sadece yükseklik değiştiyse (klavye), canvas boyutunu güncelle ama partikülleri sıfırlama
         else if (newHeight !== lastHeight) {
-            particleCanvas.width = newWidth;
-            particleCanvas.height = newHeight;
+            const dpr = window.devicePixelRatio || 1;
+            particleCanvas.width = newWidth * dpr;
+            particleCanvas.height = newHeight * dpr;
+            particleCanvas.style.width = newWidth + 'px';
+            particleCanvas.style.height = newHeight + 'px';
+            pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
             lastHeight = newHeight;
         }
     });
