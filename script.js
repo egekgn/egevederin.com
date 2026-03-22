@@ -1301,6 +1301,677 @@
     window.addEventListener('scroll', debouncedUpdate, true);
 })();
 
+// Yıldönümü Pop-up Mantığı
+(function() {
+    const popup = document.getElementById('anniversary-popup');
+    const closeBtn = document.getElementById('anniversary-close');
+    const continueBtn = document.getElementById('anniversary-continue');
+    const finalContinueBtn = document.getElementById('final-continue-btn');
+    const questionBtn = document.getElementById('anniversary-question-btn');
+    const navGameBtn = document.getElementById('nav-game-btn');
+    const particleInputContainer = document.getElementById('particle-input-container');
+    const particleInput = document.getElementById('particle-input');
+    const canvas = document.getElementById('confetti-canvas');
+    const particleCanvas = document.getElementById('particle-text-canvas');
+    
+    if (!popup || !closeBtn || !continueBtn || !canvas || !particleCanvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const pCtx = particleCanvas.getContext('2d');
+    let confetti = [];
+    let particles = [];
+    let animationId = null;
+    let particleAnimationId = null;
+    let canTriggerFinalUI = false;
+    let finalUIShown = false;
+
+    const anniversaryColors = [
+        '#ff2244', '#ff4d6d', '#ff0054', '#ff7096', '#ff8899'
+    ];
+
+    const allColorThemes = {
+        default: ['#ff2244', '#ff8899', '#ff4d6d', '#ffffff', '#ffd700', '#ff0054', '#ff7096'],
+        vibrant_pink: ['#ff2244', '#ff4d6d', '#ff0054', '#ff7096', '#ff8899'],
+        pink: ['#ff00ff', '#ff77ff', '#ffb3ff', '#ff00a2', '#ff55ff'],
+        purple: ['#9d00ff', '#c266ff', '#e0b3ff', '#6a00ff', '#b042ff'],
+        blue: ['#00d9ff', '#66eaff', '#b3f2ff', '#0084ff', '#33e0ff'],
+        cyan: ['#00ffcc', '#66ffd9', '#b3fff0', '#00cca3', '#33ffdd'],
+        green: ['#39ff14', '#77ff66', '#b3ff99', '#2db311', '#52ff3d'],
+        orange: ['#ff6700', '#ff9966', '#ffcc99', '#cc5200', '#ff8000'],
+        red: ['#ff0000', '#ff4d4d', '#ff9999', '#b30000', '#ff3333'],
+        gold: ['#ffd700', '#ffea00', '#fff44f', '#b8860b', '#ffdf33'],
+        white: ['#ffffff', '#ffffff', '#f8f9fa', '#ffffff', '#f0f0f0']
+    };
+
+    let activeTheme = 'default';
+
+    // Mouse position for particle interaction
+    const mouse = { x: null, y: null, radius: 100 };
+    particleCanvas.addEventListener('mousemove', (e) => {
+        const rect = particleCanvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+        
+        // Sadece pop-up aktifken ve particle-active class'ı varken tetikle
+        if (!popup.hasAttribute('hidden') && popup.classList.contains('particle-active')) {
+            // UI tetikleme Particle.update içinde (itilme/dağıtılma kontrolü ile)
+        }
+    });
+    
+    // Tıklama veya dokunma ile de tetikle
+    particleCanvas.addEventListener('mousedown', () => {
+        if (canTriggerFinalUI && !finalUIShown) {
+            showFinalUI();
+        }
+    });
+    
+    particleCanvas.addEventListener('touchstart', (e) => {
+        if (canTriggerFinalUI && !finalUIShown) {
+            showFinalUI();
+        }
+    });
+
+    class Particle {
+        constructor(x, y, startX, startY, animationType = 'scatter') {
+            // Başlangıç pozisyonu
+            this.x = startX !== undefined ? startX : Math.random() * particleCanvas.width;
+            this.y = startY !== undefined ? startY : Math.random() * particleCanvas.height;
+            
+            // "gradual" ise başlangıç opaklığını 0 yap ve hedefe çok yakın başlat
+            if (animationType === 'gradual') {
+                this.x = x + (Math.random() - 0.5) * 5;
+                this.y = y + (Math.random() - 0.5) * 5;
+                this.opacity = 0;
+            } else {
+                this.opacity = Math.random() * 0.5 + 0.5;
+            }
+            
+            this.size = Math.random() * 1.5 + 0.5;
+            this.baseX = x;
+            this.baseY = y;
+            
+            this.density = (Math.random() * 15) + 1;
+            const currentPalette = allColorThemes[activeTheme] || anniversaryColors;
+            this.color = currentPalette[Math.floor(Math.random() * currentPalette.length)];
+            this.active = true;
+            this.vx = 0; // Hız sadece dış kuvvetler (fare) için
+            this.vy = 0;
+            this.friction = 0.75; // Çok daha güçlü sürtünme (titreşimi önler)
+            this.ease = 0.025; // Sabit ve yavaş, asil bir yerleşme hızı
+            
+            this.targetOpacity = Math.random() * 0.3 + 0.7;
+            this.shimmerSpeed = Math.random() * 0.02 + 0.005;
+        }
+
+        draw() {
+            if (!this.active) return;
+            pCtx.fillStyle = this.color;
+            pCtx.globalAlpha = this.opacity;
+            pCtx.beginPath();
+            if (Math.random() > 0.5) {
+                pCtx.rect(this.x, this.y, this.size, this.size);
+            } else {
+                pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            }
+            pCtx.closePath();
+            pCtx.fill();
+            pCtx.globalAlpha = 1.0;
+        }
+
+        update() {
+            if (!this.active) {
+                this.y -= 5;
+                return;
+            }
+
+            // Opaklık animasyonu
+            if (this.opacity < this.targetOpacity) {
+                this.opacity += 0.015; // Daha hızlı oluşma
+            }
+            
+            // Hafif parlama efekti (sparkle)
+            this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005; // Shimmer'ı biraz daha sakinleştirelim ki renk sönmesin
+
+            // FARE ETKİLEŞİMİ (Sadece hız ekler)
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < mouse.radius) {
+                let force = (mouse.radius - distance) / mouse.radius;
+                let angle = Math.atan2(dy, dx);
+                // Fare kuvvetini biraz daha hafifletelim
+                this.vx += Math.cos(angle) * force * this.density * -0.8;
+                this.vy += Math.sin(angle) * force * this.density * -0.8;
+                
+                // PARÇACIK DAĞITILINCA UI GÖSTER
+                if (canTriggerFinalUI && !finalUIShown) {
+                    showFinalUI();
+                }
+            }
+
+            // Sürtünmeyi uygula (Hızı hızla söndürür)
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            
+            // Hızı pozisyona ekle
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // HEDEFE YÖNELME (Pure Lerp): Hiçbir zaman hedefin üzerinden geçmez, titreşimi sıfırlar.
+            let dx_base = this.baseX - this.x;
+            let dy_base = this.baseY - this.y;
+            
+            this.x += dx_base * this.ease;
+            this.y += dy_base * this.ease;
+            
+            // Hedefe çok yaklaştığında hızı tamamen sıfırla (mikro titreşimleri önlemek için)
+            if (Math.abs(dx_base) < 0.1 && Math.abs(dy_base) < 0.1) {
+                this.x = this.baseX;
+                this.y = this.baseY;
+                this.vx = 0;
+                this.vy = 0;
+            }
+        }
+    }
+
+    function initParticleText(text, animationType = 'scatter') {
+        if (!text) return;
+        particleCanvas.width = window.innerWidth;
+        particleCanvas.height = window.innerHeight;
+
+        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        pCtx.fillStyle = 'white';
+        
+        const baseFontSize = Math.min(window.innerWidth / 8, 120);
+        const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
+        
+        pCtx.font = `800 ${fontSize}px 'JetBrains Mono'`;
+        pCtx.textAlign = 'center';
+        pCtx.textBaseline = 'middle';
+        pCtx.fillText(text, particleCanvas.width / 2, particleCanvas.height / 2);
+
+        const data = pCtx.getImageData(0, 0, particleCanvas.width, particleCanvas.height);
+        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+        const newPositions = [];
+        const step = window.innerWidth < 768 ? 3 : 2; // Mobilde daha az partikül ile performans artışı
+        for (let y = 0; y < data.height; y += step) {
+            for (let x = 0; x < data.width; x += step) {
+                if (data.data[(y * 4 * data.width) + (x * 4) + 3] > 128) {
+                    newPositions.push({ x, y });
+                }
+            }
+        }
+
+        if (animationType === 'drop') {
+            particles.forEach(p => {
+                p.y = -Math.random() * 200;
+                p.x = Math.random() * particleCanvas.width;
+                p.vx = 0;
+                p.vy = Math.random() * 5 + 2;
+            });
+        } else if (animationType === 'scatter') {
+            particles.forEach(p => {
+                p.x = Math.random() * particleCanvas.width;
+                p.y = Math.random() * particleCanvas.height;
+            });
+        } else if (animationType === 'sides') {
+            particles.forEach(p => {
+                p.x = Math.random() > 0.5 ? -100 : particleCanvas.width + 100;
+                p.y = Math.random() * particleCanvas.height;
+            });
+        } else if (animationType === 'gradual') {
+            // Partikülleri oldukları yerde ama görünmez başlatmak için Particle constructor'ına paslıyoruz
+            particles.forEach(p => {
+                p.opacity = 0;
+            });
+        }
+
+        if (particles.length > newPositions.length) {
+            for (let i = newPositions.length; i < particles.length; i++) {
+                particles[i].active = false;
+            }
+        }
+
+        newPositions.forEach((pos, i) => {
+            if (particles[i]) {
+                particles[i].baseX = pos.x;
+                particles[i].baseY = pos.y;
+                particles[i].active = true;
+                if (animationType === 'gradual') {
+                    particles[i].opacity = 0;
+                }
+            } else {
+                let startX, startY;
+                if (animationType === 'drop') {
+                    startX = Math.random() * particleCanvas.width;
+                    startY = -Math.random() * 500;
+                } else if (animationType === 'sides') {
+                    startX = Math.random() > 0.5 ? -100 : particleCanvas.width + 100;
+                    startY = Math.random() * particleCanvas.height;
+                } else if (animationType === 'gradual') {
+                    startX = pos.x + (Math.random() - 0.5) * 10;
+                    startY = pos.y + (Math.random() - 0.5) * 10;
+                } else {
+                    startX = Math.random() * particleCanvas.width;
+                    startY = Math.random() * particleCanvas.height;
+                }
+                particles.push(new Particle(pos.x, pos.y, startX, startY, animationType));
+            }
+        });
+    }
+
+    // Input listener - SİHİRBAZLIK MANTIĞI
+    if (particleInput) {
+        particleInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            let targetText = e.target.value || 'seni seviyorum';
+            
+            // SİHİRBAZLIK: Derin yazınca Ege, Ege yazınca Derin çıksın
+            if (val === 'derin') {
+                targetText = 'Ege';
+            } else if (val === 'ege') {
+                targetText = 'Derin';
+            }
+            
+            // 'gradual' animasyonu ile pürüzsüz geçiş yap
+            initParticleText(targetText, 'gradual');
+        });
+    }
+
+    // Renk Paleti Mantığı
+    const colorDots = document.querySelectorAll('.color-dot');
+    colorDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const theme = dot.getAttribute('data-theme');
+            if (theme === activeTheme) return;
+
+            // Aktif sınıfını güncelle
+            colorDots.forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+
+            activeTheme = theme;
+            const newPalette = allColorThemes[activeTheme];
+
+            // Mevcut partiküllerin renklerini anında güncelle
+            particles.forEach(p => {
+                p.color = newPalette[Math.floor(Math.random() * newPalette.length)];
+            });
+        });
+    });
+
+    function animateParticles() {
+        pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        particles = particles.filter(p => p.y > -100 || p.active);
+        particles.forEach(p => {
+            p.draw();
+            p.update();
+        });
+        particleAnimationId = requestAnimationFrame(animateParticles);
+    }
+
+    function showFinalUI() {
+        if (!canTriggerFinalUI || finalUIShown) return;
+        finalUIShown = true;
+        popup.classList.add('ui-visible');
+    }
+
+    function startParticlePhase() {
+        popup.classList.add('particle-active');
+        popup.classList.remove('ui-visible'); // UI'ı kesinlikle sıfırla
+        
+        particles = [];
+        canTriggerFinalUI = false;
+        finalUIShown = false;
+        animateParticles();
+        
+        // "seni" - Artık "seviyorum" gibi yukarıdan dökülecek
+        setTimeout(() => initParticleText('seni', 'drop'), 600);
+        
+        // "seviyorum" - Kum gibi yukarıdan dökülsün
+        setTimeout(() => {
+            initParticleText('seviyorum', 'drop');
+        }, 4400);
+        
+        // Final "seni seviyorum" - Yanlardan birleşerek oluşsun
+        setTimeout(() => {
+            initParticleText('seni seviyorum', 'sides');
+            // Yazı oluşmaya başladığı an etkileşim aktif olsun
+            canTriggerFinalUI = true;
+        }, 8400);
+    }
+
+    class Confetto {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height - canvas.height;
+            this.size = Math.random() * 7 + 4;
+            this.speed = Math.random() * 3 + 2;
+            this.angle = Math.random() * 360;
+            this.spin = Math.random() * 5 - 2.5;
+            this.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        update() {
+            this.y += this.speed;
+            this.angle += this.spin;
+            if (this.y > canvas.height) {
+                this.y = -20;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.angle * Math.PI / 180);
+            ctx.fillStyle = this.color;
+            ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+            ctx.restore();
+        }
+    }
+
+    function initConfetti() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        confetti = [];
+        for (let i = 0; i < 150; i++) {
+            confetti.push(new Confetto());
+        }
+    }
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach(c => {
+            c.update();
+            c.draw();
+        });
+        animationId = requestAnimationFrame(animateConfetti);
+    }
+
+    function checkDate() {
+        const now = new Date();
+        const month = now.getMonth() + 1; // 0-11 -> 1-12
+        const day = now.getDate();
+        
+        // ŞU AN GÖRÜNTÜLEMEK İÇİN GEÇİCİ OLARAK GÜNCELLENDİ (19 Mart - 29 Mart arası)
+        if (month === 3 && day >= 19 && day <= 29) {
+            // Kullanıcı bu oturumda henüz kapatmadıysa göster
+            if (!sessionStorage.getItem('anniversaryPopupClosed')) {
+                // Küçük bir gecikmeyle göster ki sayfa yüklendiği an patlamasın
+                setTimeout(() => {
+                    popup.removeAttribute('hidden');
+                    document.body.style.overflow = 'hidden';
+                    initConfetti();
+                    animateConfetti();
+                }, 500);
+            }
+        }
+    }
+    
+    function closePopup() {
+        // Eğer zaten particle fazındaysak, X butonuna basınca tamamen çıkmalıyız
+        if (popup.classList.contains('particle-active')) {
+            finalExit();
+            return;
+        }
+
+        // Eğer mum ışığı varsa söndür
+        const candle = document.querySelector('.candle');
+        if (candle) {
+            candle.style.transition = 'opacity 0.5s ease';
+            candle.style.opacity = '0';
+        }
+        
+        // İçeriği gizle ve particle fazını başlat
+        startParticlePhase();
+    }
+
+    function finalExit() {
+        popup.style.opacity = '0';
+        popup.style.transition = 'opacity 0.5s ease';
+        
+        setTimeout(() => {
+            popup.setAttribute('hidden', '');
+            document.body.style.overflow = '';
+            cancelAnimationFrame(animationId);
+            cancelAnimationFrame(particleAnimationId);
+            // Bu oturumda tekrar gösterme
+            sessionStorage.setItem('anniversaryPopupClosed', 'true');
+        }, 500);
+    }
+
+    // Mumu tıklayarak veya dokunarak "üfleme" etkileşimi
+    const candle = document.querySelector('.candle');
+    if (candle) {
+        const blowOut = () => {
+            const flame = candle.querySelector('.flame');
+            if (flame) {
+                flame.style.display = 'none';
+                popup.classList.add('lights-off');
+                setTimeout(closePopup, 300);
+            }
+        };
+        candle.addEventListener('click', blowOut);
+        candle.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            blowOut();
+        }, { passive: false });
+    }
+    
+    closeBtn.addEventListener('click', closePopup);
+    closeBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        closePopup();
+    }, { passive: false });
+
+    continueBtn.addEventListener('click', closePopup);
+    continueBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        closePopup();
+    }, { passive: false });
+
+    if (finalContinueBtn) {
+        finalContinueBtn.addEventListener('click', finalExit);
+        finalContinueBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            finalExit();
+        }, { passive: false });
+    }
+    
+    // Oyun butonu (Kalıcı erişim)
+    if (navGameBtn) {
+        navGameBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Pop-up'ı göster ve doğrudan partikül fazına geç
+            popup.removeAttribute('hidden');
+            popup.style.opacity = '1';
+            document.body.style.overflow = 'hidden';
+            
+            // Eğer pasta/mum içeriği varsa gizle
+            const contentMinimal = popup.querySelector('.anniversary-content-minimal');
+            if (contentMinimal) {
+                contentMinimal.style.display = 'none';
+            }
+            
+            // Partikül fazını başlat
+            startParticlePhase();
+            
+            // Menü açıksa kapat (mobil için)
+            const nav = document.getElementById('main-nav');
+            const navToggle = document.getElementById('nav-toggle');
+            if (nav && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                if (navToggle) navToggle.classList.remove('active');
+            }
+        });
+    }
+    
+    if (questionBtn) {
+        questionBtn.addEventListener('click', () => {
+            const valentineModal = document.getElementById('valentine-modal');
+            const valentineClose = document.getElementById('valentine-close');
+            const questionContainer = valentineModal.querySelector(".js-question-container");
+            const resultContainer = valentineModal.querySelector(".js-result-container");
+            const gifResult = valentineModal.querySelector(".js-gif-result");
+            const heartLoader = valentineModal.querySelector(".js-heart-loader");
+            const yesBtn = valentineModal.querySelector(".js-yes-btn");
+            const noBtn = valentineModal.querySelector(".js-no-btn");
+            
+            if (!valentineModal || !questionContainer || !resultContainer || !heartLoader || !yesBtn || !noBtn) return;
+            
+            // Modal'ı göster ve sıfırla
+            valentineModal.removeAttribute('hidden');
+            valentineModal.style.opacity = '1';
+            
+            // Ana pop-up'ı tamamen gizle (siteyi görebilmek için)
+            popup.classList.add('valentine-active');
+            
+            questionContainer.style.display = "block";
+            resultContainer.style.display = "none";
+            heartLoader.style.display = "none";
+            noBtn.style.position = "static";
+            yesBtn.style.transform = "scale(1)";
+            
+            // Kapatma butonu - Valentine modalını kapat ve anasayfaya dön
+            if (valentineClose) {
+                valentineClose.onclick = () => {
+                    valentineModal.setAttribute('hidden', '');
+                    popup.classList.remove('valentine-active');
+                    finalExit(); // Direkt anasayfaya (siteye) dön
+                };
+            }
+            
+            // Hayır butonu kaçma mantığı
+            const moveNoBtn = () => {
+                const modalRect = valentineModal.querySelector('.valentine-card').getBoundingClientRect();
+                const btnRect = noBtn.getBoundingClientRect();
+                
+                const maxX = modalRect.width - btnRect.width - 40;
+                const maxY = modalRect.height - btnRect.height - 40;
+                
+                const randomX = Math.floor(Math.random() * maxX) - (modalRect.width / 2) + (btnRect.width / 2);
+                const randomY = Math.floor(Math.random() * maxY) - (modalRect.height / 2) + (btnRect.height / 2);
+                
+                noBtn.style.position = 'absolute';
+                noBtn.style.left = `calc(50% + ${randomX}px)`;
+                noBtn.style.top = `calc(50% + ${randomY}px)`;
+            };
+
+            noBtn.addEventListener("mouseover", moveNoBtn);
+            noBtn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                moveNoBtn();
+            }, { passive: false });
+            
+            // Evet butonu tıklanınca
+            const handleYes = () => {
+                questionContainer.style.display = "none";
+                heartLoader.style.display = "block";
+                
+                // 3 saniye sonra sonucu göster
+                setTimeout(() => {
+                    heartLoader.style.display = "none";
+                    resultContainer.style.display = "block";
+                    if (gifResult) gifResult.play();
+                    
+                    // Konfeti fırlat
+                    if (typeof initConfetti === 'function') {
+                        initConfetti();
+                        animateConfetti();
+                    }
+                    
+                    // 4 saniye sonra tüm pop-up'ı kapatıp anasayfaya (siteye) geçişi sağla
+                    setTimeout(() => {
+                        valentineModal.style.opacity = '0';
+                        valentineModal.style.transition = 'opacity 1s ease';
+                        setTimeout(() => {
+                            valentineModal.setAttribute('hidden', '');
+                            // Tüm pop-up'ı tamamen kapat (Siteye Devam Et etkisi)
+                            finalExit();
+                        }, 1000);
+                    }, 4000);
+                }, 3000);
+            };
+
+            yesBtn.addEventListener("click", handleYes);
+            yesBtn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                handleYes();
+            }, { passive: false });
+        });
+    }
+    
+    // Dışarı tıklayınca kapat (particle fazında değilse)
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup && !popup.classList.contains('particle-active')) {
+            closePopup();
+        }
+    });
+    
+    // ESC ile kapat
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !popup.hasAttribute('hidden')) {
+            if (popup.classList.contains('particle-active')) {
+                finalExit();
+            } else {
+                closePopup();
+            }
+        }
+    });
+
+    // Mobil klavye optimizasyonu (Visual Viewport API)
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            const viewport = window.visualViewport;
+            const inputWrapper = document.querySelector('.anniversary-input-wrapper');
+            
+            if (inputWrapper && !popup.hasAttribute('hidden')) {
+                // Eğer viewport boyutu çok küçüldüyse (klavye açıldıysa)
+                if (viewport.height < window.innerHeight * 0.75) {
+                    // Input'u viewport'un ortasına taşı
+                    const offset = window.innerHeight - viewport.height;
+                    inputWrapper.style.transform = `translate(-50%, -${offset / 2}px)`;
+                } else {
+                    inputWrapper.style.transform = `translateX(-50%)`;
+                }
+            }
+        });
+    }
+
+    let lastWidth = window.innerWidth;
+    let lastHeight = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        if (popup.hasAttribute('hidden')) return;
+
+        const newWidth = window.innerWidth;
+        const newHeight = window.innerHeight;
+
+        // Genişlik değiştiyse her şeyi sıfırla (yatay/dikey geçiş)
+        if (newWidth !== lastWidth) {
+            initConfetti();
+            if (popup.classList.contains('particle-active')) {
+                // Mevcut yazıyı koruyarak yeniden oluştur
+                const currentText = particleInput ? particleInput.value : 'seni seviyorum';
+                initParticleText(currentText || 'seni seviyorum', 'scatter');
+            }
+            lastWidth = newWidth;
+            lastHeight = newHeight;
+        } 
+        // Sadece yükseklik değiştiyse (klavye), canvas boyutunu güncelle ama partikülleri sıfırlama
+        else if (newHeight !== lastHeight) {
+            particleCanvas.width = newWidth;
+            particleCanvas.height = newHeight;
+            lastHeight = newHeight;
+        }
+    });
+    
+    // Kontrolü çalıştır
+    checkDate();
+})();
+
 // Gizli Buton ve Kartpostal
 (function() {
     // DOM hazır olduğunda çalıştır
