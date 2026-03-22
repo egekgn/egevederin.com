@@ -1,0 +1,10 @@
+<article class="post-card" data-post-index="4">
+    <h2 class="post-card__title">Beşinci Gönderi: Yeni Başlangıç</h2>
+    <p class="post-card__meta">Üniversite • 2024-2025</p>
+    <p class="post-card__excerpt">Yeni bir dönem başladı ve hayatımızda yeni sayfalar açılıyor...</p>
+    <a class="post-card__link" href="#">Devamını oku →</a>
+    <div class="post-card__full" hidden>
+        <p>Buraya tam yazı içeriğinizi yazın. Paragraflar ekleyebilirsiniz.</p>
+        <p>İkinci paragraf da buraya gelebilir.</p>
+    </div>
+</article>
