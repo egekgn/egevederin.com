@@ -1527,14 +1527,13 @@
         particleCanvas.style.height = logicalHeight + 'px';
         
         pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
         pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
-        pCtx.fillStyle = 'white';
         
+        // Fontun yüklendiğinden emin olmak için tekrar set et
+        pCtx.fillStyle = 'white';
         const baseFontSize = Math.min(logicalWidth / 8, 120);
         const fontSize = text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize;
-        
-        pCtx.font = `800 ${fontSize}px 'JetBrains Mono'`;
+        pCtx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
         pCtx.textAlign = 'center';
         pCtx.textBaseline = 'middle';
         pCtx.fillText(text, logicalWidth / 2, logicalHeight / 2);
@@ -1544,13 +1543,17 @@
         pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
 
         const newPositions = [];
-        // Tanecik yoğunluğu %50 azaltıldı (step: 2 -> 4 veya 3 -> 5/6)
-        const step = Math.floor((logicalWidth < 768 ? 6 : 4) * dpr);
+        // Tanecik yoğunluğu (step) dpr ile çarpılmamalı, dpr'a göre ölçeklenmeli
+        // Hedef: Her ~3-4 mantıksal pikselde bir tanecik (Retina ekranlarda daha sık örnekleme)
+        const step = logicalWidth < 768 ? 4 : 3; 
         
-        for (let y = 0; y < data.height; y += step) {
-            for (let x = 0; x < data.width; x += step) {
-                if (data.data[(y * 4 * data.width) + (x * 4) + 3] > 128) {
-                    newPositions.push({ x: x / dpr, y: y / dpr });
+        for (let y = 0; y < data.height; y += step * dpr) {
+            for (let x = 0; x < data.width; x += step * dpr) {
+                // Koordinatları dpr ile bölerek mantıksal piksel koordinatlarına geri dönüyoruz
+                const pixelX = Math.floor(x);
+                const pixelY = Math.floor(y);
+                if (data.data[(pixelY * 4 * data.width) + (pixelX * 4) + 3] > 128) {
+                    newPositions.push({ x: pixelX / dpr, y: pixelY / dpr });
                 }
             }
         }
@@ -1676,7 +1679,14 @@
         mouse.radius = 120;
     }
 
+    let particleSequenceTimeouts = [];
+    function clearParticleSequence() {
+        particleSequenceTimeouts.forEach(t => clearTimeout(t));
+        particleSequenceTimeouts = [];
+    }
+
     function startParticlePhase() {
+        clearParticleSequence();
         popup.classList.add('particle-active');
         popup.classList.remove('ui-visible'); // UI'ı kesinlikle sıfırla
         
@@ -1685,21 +1695,24 @@
         finalUIShown = false;
         animateParticles();
         
-        // Dinamik Bekleme Süreleri: Her kelime için en az 6-7 saniye aralık
-        // "seni" - İlk kelime
-        setTimeout(() => initParticleText('seni', 'drop'), 800);
-        
-        // "seviyorum" - 'seni' 3 saniye sabit kaldıktan sonra (800ms + 3000ms + animasyon süresi)
-        setTimeout(() => {
-            initParticleText('seviyorum', 'drop');
-        }, 7500);
-        
-        // Final "seni seviyorum" - 'seviyorum' 3-4 saniye sabit kaldıktan sonra
-        setTimeout(() => {
-            initParticleText('seni seviyorum', 'sides');
-            // Yazı oluşmaya başladığı an etkileşim aktif olsun
-            canTriggerFinalUI = true;
-        }, 14500);
+        // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
+        // 1. "seni"
+        particleSequenceTimeouts.push(setTimeout(() => {
+            initParticleText('seni', 'drop');
+            
+            // 2. "seviyorum" (8 saniye sonra)
+            particleSequenceTimeouts.push(setTimeout(() => {
+                initParticleText('seviyorum', 'drop');
+                
+                // 3. "seni seviyorum" (8 saniye sonra)
+                particleSequenceTimeouts.push(setTimeout(() => {
+                    initParticleText('seni seviyorum', 'sides');
+                    canTriggerFinalUI = true;
+                }, 8000));
+                
+            }, 8000));
+            
+        }, 1000));
     }
 
     class Confetto {
@@ -1789,6 +1802,7 @@
     }
 
     function finalExit() {
+        clearParticleSequence();
         popup.style.opacity = '0';
         popup.style.transition = 'opacity 0.5s ease';
         

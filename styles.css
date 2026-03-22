@@ -2422,7 +2422,8 @@ body::after {
         left: 15px !important;
         margin: 0 !important;
         font-size: 1rem;
-        z-index: 9999 !important;
+        z-index: 99999 !important;
+        display: none; /* UI visible olana kadar gizli */
     }
 }
 
@@ -2474,11 +2475,18 @@ body::after {
     position: fixed !important;
     top: 15px !important;
     left: 15px !important;
-    z-index: 9999 !important;
+    z-index: 99999 !important; /* Çok daha yüksek bir değer */
     font-size: 1.1rem;
-    opacity: 0;
-    pointer-events: none;
+    opacity: 1 !important; /* Opacity 0 sorununu çözelim */
+    display: none; /* İlk başta kapalı, UI visible olunca açılacak */
+    pointer-events: auto !important;
     transition: opacity 0.8s ease;
+}
+
+.anniversary-overlay.ui-visible .question-btn {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .anniversary-overlay .section-modal__close {
