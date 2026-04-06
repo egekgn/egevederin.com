@@ -11,6 +11,23 @@
     let lastResizeTime = 0;
     let resizeTimeout = null;
 
+    // Mouse/Touch etkileşimi için değişkenler
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+    window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            mouseX = e.touches[0].clientX;
+            mouseY = e.touches[0].clientY;
+        }
+    }, { passive: true });
+    window.addEventListener('touchend', () => { mouseX = -1000; mouseY = -1000; });
+    window.addEventListener('mouseout', () => { mouseX = -1000; mouseY = -1000; });
+
     // Heart rain settings
     const heartSymbol = '❤';
 
@@ -19,12 +36,12 @@
         const newWidth = Math.floor(window.innerWidth);
         const newHeight = Math.floor(window.innerHeight);
         const newColumns = Math.ceil(newWidth / fontSize);
-        
+
         // Eğer sadece küçük bir değişiklik varsa (mobil address bar gibi), drops'u koru
         const widthDiff = Math.abs(newWidth - width);
         const heightDiff = Math.abs(newHeight - height);
         const isSignificantResize = widthDiff > 50 || heightDiff > 50 || columns !== newColumns;
-        
+
         width = newWidth;
         height = newHeight;
         canvas.style.width = width + 'px';
@@ -35,12 +52,12 @@
 
         // Daha belirgin kalpler için emoji fontlarını kullan
         ctx.font = fontSize + 'px Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, JetBrains Mono, monospace';
-        
+
         // Sadece önemli resize'larda drops array'ini yeniden oluştur
         if (isSignificantResize) {
             const oldColumns = columns;
             columns = newColumns;
-            
+
             if (oldColumns === 0) {
                 // İlk yükleme
                 drops = new Array(columns).fill(0).map(() => Math.floor(Math.random() * -40));
@@ -92,9 +109,21 @@
         ctx.shadowBlur = 12;
         for (let i = 0; i < columns && i < drops.length; i++) {
             const text = heartSymbol;
-            const x = i * fontSize;
-            const y = drops[i] * fontSize;
-            ctx.fillText(text, x, y);
+            const baseX = i * fontSize;
+            let y = drops[i] * fontSize;
+
+            let xOffset = 0;
+            const dx = baseX - mouseX;
+            const dy = y - mouseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = 140; // Etkileşim yarıçapı
+
+            if (dist < maxDist && dist > 0) {
+                const force = (maxDist - dist) / maxDist;
+                xOffset = (dx / dist) * force * 50; // Max 50px kaçış
+            }
+
+            ctx.fillText(text, baseX + xOffset, y);
 
             // reset drop randomly after it passes bottom
             if (y > height && Math.random() > 0.975) {
@@ -146,33 +175,33 @@
 })();
 
 // Notes Section - "Devamını oku" linkini kontrol et
-(function() {
+(function () {
     function checkNoteCards() {
         const noteCards = document.querySelectorAll('.note-card');
-        
+
         noteCards.forEach(card => {
             const content = card.querySelector('.note-card__content');
             const excerpt = card.querySelector('.note-card__excerpt');
             const full = card.querySelector('.note-card__full');
             const link = card.querySelector('.note-card__link');
-            
+
             if (!content || !excerpt || !full || !link) {
                 // Eğer link yoksa, hiçbir şey yapma
                 return;
             }
-            
+
             // Full içeriğin metnini al
             const fullText = full.textContent.trim();
             const excerptText = excerpt.textContent.trim();
-            
+
             // ScrollHeight ile içeriğin kesilip kesilmediğini kontrol et
             const isOverflowing = excerpt.scrollHeight > excerpt.offsetHeight;
-            
+
             // Full içerik excerpt'tan uzunsa veya içerik kesilmişse link göster
             // ÖNEMLİ: Eğer full içerik excerpt'tan farklıysa (ekstra paragraf varsa) link göster
             const fullHasMoreContent = fullText.length > excerptText.length;
             const fullHasMoreParagraphs = full.querySelectorAll('p').length > excerpt.querySelectorAll('p').length;
-            
+
             if (fullHasMoreContent || isOverflowing || fullHasMoreParagraphs) {
                 link.style.display = 'inline-block';
                 link.style.visibility = 'visible';
@@ -186,16 +215,16 @@
             }
         });
     }
-    
+
     // İlk yüklemede ve resize'da kontrol et (debounce ile)
     let checkTimeout;
     function debouncedCheck() {
         clearTimeout(checkTimeout);
         checkTimeout = setTimeout(checkNoteCards, 100);
     }
-    
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             checkNoteCards();
             window.addEventListener('resize', debouncedCheck);
         });
@@ -238,7 +267,7 @@
                 const clonedFull = noteFull.cloneNode(true);
                 clonedFull.removeAttribute('hidden');
                 clonedFull.querySelectorAll('[hidden]').forEach(el => el.removeAttribute('hidden'));
-                
+
                 const noteContent = `
                     <h2 style="margin-top: 0; color: var(--text); margin-bottom: 24px; font-weight: 800; text-decoration: underline;">${title}</h2>
                     ${clonedFull.innerHTML}
@@ -247,7 +276,7 @@
             }
             return;
         }
-        
+
         const link = e.target.closest('.post-card__link');
         if (!link) return;
         e.preventDefault();
@@ -260,26 +289,26 @@
                 // Section modal'ı direkt aç
                 const sectionModal = document.querySelector('[data-section-modal]');
                 const sectionModalContent = document.querySelector('[data-section-modal-content]');
-                
+
                 if (sectionModal && sectionModalContent) {
                     const yapilacaklarSection = document.getElementById('yapilacaklar');
                     if (yapilacaklarSection) {
                         sectionModalContent.innerHTML = '';
                         const clonedSection = yapilacaklarSection.cloneNode(true);
-                        
+
                         // Modal içindeki "Devamını oku" linkini kaldır veya devre dışı bırak
                         const clonedLink = clonedSection.querySelector('.post-card__link');
                         if (clonedLink) {
                             clonedLink.style.display = 'none';
                         }
-                        
+
                         // post-card__full içeriğini göster
                         const clonedFull = clonedSection.querySelector('.post-card__full');
                         if (clonedFull) {
                             clonedFull.removeAttribute('hidden');
                             clonedFull.style.display = 'block';
                         }
-                        
+
                         sectionModalContent.appendChild(clonedSection);
                         sectionModal.removeAttribute('hidden');
                         sectionModal.style.display = 'block';
@@ -290,24 +319,24 @@
                     // Fallback: Eski modal açma yöntemi
                     const title = card.querySelector('.post-card__title')?.textContent || 'Yapılacaklar Listesi';
                     const meta = card.querySelector('.post-card__meta')?.textContent || '';
-                    
+
                     const todoItems = todoList.querySelectorAll('.todo-item');
                     let todoItemsHTML = '';
-                    
+
                     todoItems.forEach((item, index) => {
                         const clonedItem = item.cloneNode(true);
                         const checkbox = clonedItem.querySelector('input[type="checkbox"]');
                         const label = clonedItem.querySelector('label');
-                        
+
                         if (checkbox && label) {
                             const newId = `modal-todo-${index + 1}`;
                             checkbox.id = newId;
                             label.setAttribute('for', newId);
                         }
-                        
+
                         todoItemsHTML += clonedItem.outerHTML;
                     });
-                    
+
                     const todoContent = `
                         <h2 style="margin-top: 0; color: var(--text); margin-bottom: 8px; font-weight: 800;">${title}</h2>
                         ${meta ? `<p style="color: var(--muted); margin-bottom: 24px;">${meta}</p>` : ''}
@@ -372,7 +401,7 @@
             galleryData = window.galleryData.photos;
             galleryImages = galleryData.map(photo => photo.filename);
         }
-        
+
         // HTML'deki galeri modal item'larına click event ekle
         if (galleryContent) {
             const galleryItems = galleryContent.querySelectorAll('.gallery-modal__item');
@@ -381,7 +410,7 @@
                 item.addEventListener('click', () => openPhotoViewer(index));
             });
         }
-        
+
         // Preview görsellerine click event ekle
         if (galleryPreview) {
             const previewImages = galleryPreview.querySelectorAll('.gallery-bubble__image');
@@ -409,7 +438,7 @@
     // Fotoğraf görüntüleyiciyi aç
     function openPhotoViewer(index) {
         if (!photoViewer || !photoViewerImage || index < 0 || index >= galleryImages.length) return;
-        
+
         currentPhotoIndex = index;
         updatePhotoViewer();
         photoViewer.removeAttribute('hidden');
@@ -426,29 +455,29 @@
     // Fotoğraf görüntüleyiciyi güncelle
     function updatePhotoViewer() {
         if (!photoViewerImage || currentPhotoIndex < 0 || currentPhotoIndex >= galleryImages.length) return;
-        
+
         const photo = galleryData[currentPhotoIndex];
         if (!photo) return;
-        
+
         photoViewerImage.innerHTML = '';
-        
+
         // HTML'deki mevcut img elementini al veya yeni oluştur
         const galleryItem = galleryContent.querySelector(`[data-photo-index="${currentPhotoIndex}"]`);
         const existingImg = galleryItem ? galleryItem.querySelector('img') : null;
-        
+
         const img = existingImg ? existingImg.cloneNode(true) : document.createElement('img');
         img.loading = 'eager';
         img.fetchPriority = 'high';
         img.decoding = 'async';
-        
+
         photoViewerImage.appendChild(img);
-        
+
         // Tarih bilgisini ekle
         const dateInfo = document.createElement('div');
         dateInfo.className = 'photo-viewer__date';
         dateInfo.textContent = formatDate(photo.uploadDate);
         photoViewerImage.appendChild(dateInfo);
-        
+
         // Önceki/sonraki butonlarını göster/gizle
         if (photoViewerPrev) {
             photoViewerPrev.style.display = galleryImages.length > 1 ? 'flex' : 'none';
@@ -474,7 +503,7 @@
 
     // Event listeners
     if (galleryOpenBtn) {
-        galleryOpenBtn.addEventListener('click', function(e) {
+        galleryOpenBtn.addEventListener('click', function (e) {
             e.preventDefault();
             openGallery();
         });
@@ -497,7 +526,7 @@
     }
 
     // Klavye navigasyonu
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (photoViewer && !photoViewer.hasAttribute('hidden')) {
             if (e.key === 'Escape') {
                 closePhotoViewer();
@@ -515,7 +544,7 @@
 
     // Galeri modal dışına tıklanınca kapat
     if (galleryModal) {
-        galleryModal.addEventListener('click', function(e) {
+        galleryModal.addEventListener('click', function (e) {
             if (e.target === galleryModal) {
                 closeGallery();
             }
@@ -524,7 +553,7 @@
 
     // Fotoğraf görüntüleyici dışına tıklanınca kapat
     if (photoViewer) {
-        photoViewer.addEventListener('click', function(e) {
+        photoViewer.addEventListener('click', function (e) {
             if (e.target === photoViewer) {
                 closePhotoViewer();
             }
@@ -541,7 +570,7 @@
 })();
 
 // Mobile Navigation (Hamburger Menu)
-(function() {
+(function () {
     const navToggle = document.getElementById('nav-toggle');
     const mainNav = document.getElementById('main-nav');
     const navOverlay = document.createElement('div');
@@ -553,7 +582,7 @@
     } else {
         document.body.insertBefore(navOverlay, document.body.firstChild);
     }
-    
+
     function toggleNav() {
         if (navToggle && mainNav) {
             const isOpening = !mainNav.classList.contains('active');
@@ -569,7 +598,7 @@
             }
         }
     }
-    
+
     function closeNav() {
         if (navToggle && mainNav) {
             navToggle.classList.remove('active');
@@ -579,28 +608,28 @@
             document.body.classList.remove('menu-open');
         }
     }
-    
+
     if (navToggle) {
         // Click event
-        navToggle.addEventListener('click', function(e) {
+        navToggle.addEventListener('click', function (e) {
             e.stopPropagation();
             toggleNav();
         });
-        
+
         // Touch event for mobile
-        navToggle.addEventListener('touchend', function(e) {
+        navToggle.addEventListener('touchend', function (e) {
             e.preventDefault();
             e.stopPropagation();
             toggleNav();
         }, { passive: false });
     }
-    
+
     // Overlay'e tıklanınca menüyü kapat
     navOverlay.addEventListener('click', closeNav);
-    
+
     // Menü linklerine tıklanınca menüyü kapat
     if (mainNav) {
-        mainNav.addEventListener('click', function(e) {
+        mainNav.addEventListener('click', function (e) {
             if (e.target.tagName === 'A') {
                 e.stopPropagation(); // Event propagation'ı durdur - overlay'e gitmemeli
                 closeNav();
@@ -608,9 +637,9 @@
             }
         });
     }
-    
+
     // ESC tuşu ile menüyü kapat
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && mainNav && mainNav.classList.contains('active')) {
             closeNav();
         }
@@ -626,50 +655,50 @@
         const sectionModal = document.querySelector('[data-section-modal]');
         const sectionModalContent = document.querySelector('[data-section-modal-content]');
         const sectionModalClose = document.querySelector('[data-section-modal-close]');
-        
+
         if (!sectionModal || !sectionModalContent) {
             console.error('Section modal elementleri bulunamadı!');
             return;
         }
-        
+
         // Section modal'ı kapat
         function closeSectionModal() {
             sectionModal.setAttribute('hidden', '');
             document.body.style.overflow = ''; // Body overflow'u eski haline getir
         }
-        
+
         // Section modal'ı aç
         function openSectionModal(sectionId) {
             console.log('openSectionModal çağrıldı:', sectionId);
-            
+
             // Body overflow'u kapat - tam ekran modal için
             document.body.style.overflow = 'hidden';
-            
+
             const sectionElement = document.getElementById(sectionId);
-            
+
             if (!sectionElement) {
                 console.error('Section elementi bulunamadı:', sectionId);
                 return;
             }
-            
+
             console.log('Section elementi bulundu:', sectionElement);
-            
+
             // Modal içeriğini temizle
             sectionModalContent.innerHTML = '';
-            
+
             // Eğer yazılar section ise, özel işlem yap
             if (sectionId === 'yazilar') {
                 console.log('Yazılar section işleniyor...');
-                
+
                 // Tüm post-card'ları orijinal section'dan al
                 const allPostCards = sectionElement.querySelectorAll('.post-card');
                 console.log('Bulunan post-card sayısı:', allPostCards.length);
-                
+
                 if (allPostCards.length === 0) {
                     console.error('Post-card bulunamadı!');
                     return;
                 }
-                
+
                 // Yeni bir div oluştur
                 const postsGrid = document.createElement('div');
                 postsGrid.className = 'posts-modal-grid';
@@ -677,7 +706,7 @@
                 postsGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
                 postsGrid.style.gap = '22px';
                 postsGrid.style.width = '100%';
-                
+
                 // Tüm post-card'ları kopyala ve grid'e ekle
                 allPostCards.forEach((card, index) => {
                     const clonedCard = card.cloneNode(true);
@@ -688,43 +717,43 @@
                     postsGrid.appendChild(clonedCard);
                     console.log('Post-card', index + 1, 'eklendi');
                 });
-                
+
                 // Grid'i modal içine ekle
                 sectionModalContent.appendChild(postsGrid);
                 console.log('Grid modal içine eklendi');
-                
+
                 // Modal içindeki "Devamını oku" linklerine event listener ekle
                 setTimeout(() => {
                     const modalLinks = sectionModalContent.querySelectorAll('.post-card__link');
                     modalLinks.forEach(link => {
-                        link.addEventListener('click', function(e) {
+                        link.addEventListener('click', function (e) {
                             e.preventDefault();
                             e.stopPropagation();
-                            
+
                             const card = link.closest('.post-card');
                             const full = card && card.querySelector('.post-card__full');
                             const title = card && card.querySelector('.post-card__title')?.textContent || '';
                             const meta = card && card.querySelector('.post-card__meta')?.textContent || '';
-                            
+
                             if (full) {
                                 // Modal içeriğini post-card__full ile değiştir
                                 const clonedFull = full.cloneNode(true);
                                 clonedFull.removeAttribute('hidden');
                                 clonedFull.querySelectorAll('[hidden]').forEach(el => el.removeAttribute('hidden'));
-                                
+
                                 // Geri butonu ekle
                                 const backButton = document.createElement('button');
                                 backButton.className = 'section-modal__back';
                                 backButton.innerHTML = '← Geri';
-                                backButton.addEventListener('click', function() {
+                                backButton.addEventListener('click', function () {
                                     // Grid'i tekrar göster
                                     openSectionModal('yazilar');
                                 });
-                                
+
                                 // İçerik wrapper'ı oluştur
                                 const contentWrapper = document.createElement('div');
                                 contentWrapper.className = 'section-modal__post-content';
-                                
+
                                 // Başlık ve meta ekle
                                 if (title) {
                                     const titleEl = document.createElement('h2');
@@ -734,7 +763,7 @@
                                     titleEl.style.marginBottom = '8px';
                                     contentWrapper.appendChild(titleEl);
                                 }
-                                
+
                                 if (meta) {
                                     const metaEl = document.createElement('p');
                                     metaEl.className = 'post-card__meta';
@@ -742,10 +771,10 @@
                                     metaEl.style.marginBottom = '24px';
                                     contentWrapper.appendChild(metaEl);
                                 }
-                                
+
                                 // İçerik ekle
                                 contentWrapper.appendChild(clonedFull);
-                                
+
                                 // Modal içeriğini değiştir
                                 sectionModalContent.innerHTML = '';
                                 sectionModalContent.appendChild(backButton);
@@ -759,23 +788,23 @@
                 const clonedSection = sectionElement.cloneNode(true);
                 sectionModalContent.appendChild(clonedSection);
             }
-            
+
             // Modal'ı göster
             sectionModal.removeAttribute('hidden');
             sectionModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            
+
             console.log('Modal gösterildi');
-            
+
             // Scroll'u en üste al
             sectionModal.scrollTop = 0;
         };
-        
+
         // Galeri linkine tıklandığında direkt modal'ı aç
         if (galleryLink) {
-            galleryLink.addEventListener('click', function(e) {
+            galleryLink.addEventListener('click', function (e) {
                 e.preventDefault();
-                
+
                 // Mevcut galeri açma butonunu tetikle
                 const galleryOpenBtn = document.querySelector('[data-gallery-open]');
                 if (galleryOpenBtn) {
@@ -783,12 +812,12 @@
                 }
             });
         }
-        
+
         // Diğer navigation linkleri için section modal aç
         navLinks.forEach(link => {
             const href = link.getAttribute('href');
             if (href && href.startsWith('#') && href !== '#galeri') {
-                link.addEventListener('click', function(e) {
+                link.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     const targetId = href.substring(1);
@@ -797,32 +826,32 @@
                 });
             }
         });
-        
+
         // Section modal kapat butonu
         if (sectionModalClose) {
             sectionModalClose.addEventListener('click', closeSectionModal);
         }
-        
+
         // Section modal dışına tıklanınca kapat
-        sectionModal.addEventListener('click', function(e) {
+        sectionModal.addEventListener('click', function (e) {
             if (e.target === sectionModal) {
                 closeSectionModal();
             }
         });
-        
+
         // ESC tuşu ile kapat
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !sectionModal.hasAttribute('hidden')) {
                 closeSectionModal();
             }
         });
     }
-    
+
     // DOM hazır olduğunda çalıştır
     console.log('Navigation script yüklendi, readyState:', document.readyState);
-    
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('DOMContentLoaded event tetiklendi');
             initNavigation();
         });
@@ -830,9 +859,9 @@
         console.log('DOM zaten hazır, initNavigation çağrılıyor');
         initNavigation();
     }
-    
+
     // Ekstra güvence: window load event'inde de çalıştır
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         console.log('Window load event tetiklendi');
         if (!document.querySelector('[data-section-modal]')) {
             console.error('Modal elementi hala bulunamadı!');
@@ -845,42 +874,42 @@
     // TEK audio instance - ilk click'te oluşturulacak
     let audio = null;
     const audioSrc = 'mehmet-gureli-kimse-bilmez.mp3';
-    
+
     let isDragging = false;
     let isRepeating = false;
-    
+
     // Audio instance'ı oluştur (ilk click'te)
     function initAudio() {
         if (!audio) {
             audio = new Audio(audioSrc);
             audio.preload = 'metadata';
             audio.crossOrigin = 'anonymous';
-            
+
             // Audio event listener'ları
-            audio.addEventListener('loadedmetadata', function() {
+            audio.addEventListener('loadedmetadata', function () {
                 const duration = audio.duration && isFinite(audio.duration) ? formatTime(audio.duration) : '0:00';
                 document.querySelectorAll('#total-time').forEach(el => {
                     el.textContent = duration;
                 });
             });
-            
+
             audio.addEventListener('timeupdate', updateProgress);
-            
-            audio.addEventListener('play', function() {
+
+            audio.addEventListener('play', function () {
                 updatePlayButtonIcons(true);
             });
-            
-            audio.addEventListener('pause', function() {
+
+            audio.addEventListener('pause', function () {
                 updatePlayButtonIcons(false);
             });
-            
-            audio.addEventListener('ended', function() {
+
+            audio.addEventListener('ended', function () {
                 if (!audio.loop) {
                     updatePlayButtonIcons(false);
                 }
             });
-            
-            audio.addEventListener('error', function(e) {
+
+            audio.addEventListener('error', function (e) {
                 console.error('Audio error:', e);
                 if (audio.error) {
                     console.error('Error code:', audio.error.code);
@@ -890,7 +919,7 @@
         }
         return audio;
     }
-    
+
     // Zamanı mm:ss formatına çevir
     function formatTime(seconds) {
         if (isNaN(seconds)) return '0:00';
@@ -898,11 +927,11 @@
         const secs = Math.floor(seconds % 60);
         return `${mins}:${String(secs).padStart(2, '0')}`;
     }
-    
+
     // Progress bar'ı güncelle
     function updateProgress() {
         if (!audio || !audio.duration || isDragging) return;
-        
+
         const percent = (audio.currentTime / audio.duration) * 100;
         document.querySelectorAll('#progress-fill').forEach(fill => {
             fill.style.width = percent + '%';
@@ -914,7 +943,7 @@
             el.textContent = formatTime(audio.currentTime);
         });
     }
-    
+
     // Play button icon'larını güncelle
     function updatePlayButtonIcons(playing) {
         document.querySelectorAll('#play-btn .play-icon').forEach(icon => {
@@ -924,20 +953,20 @@
             icon.style.display = playing ? 'block' : 'none';
         });
     }
-    
+
     // PLAY/PAUSE - Event delegation
     function handlePlayClick(e) {
         const clickedBtn = e.target.closest('#play-btn');
         if (!clickedBtn) return;
-        
+
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        
+
         // Audio instance'ı oluştur (ilk click'te)
         const audioInstance = initAudio();
-        
+
         // Toggle: audio.paused üzerinden kontrol et
         if (audioInstance.paused) {
             // PLAY
@@ -955,43 +984,43 @@
             audioInstance.pause();
         }
     }
-    
+
     // REPEAT - Event delegation
     function handleRepeatClick(e) {
         const clickedBtn = e.target.closest('#repeat-btn');
         if (!clickedBtn) return;
-        
+
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        
+
         if (!audio) initAudio();
-        
+
         isRepeating = !isRepeating;
         audio.loop = isRepeating;
-        
+
         document.querySelectorAll('#repeat-btn').forEach(btn => {
             btn.classList.toggle('active', isRepeating);
         });
     }
-    
+
     // RESTART - Event delegation
     function handleRestartClick(e) {
         const clickedBtn = e.target.closest('#restart-btn');
         if (!clickedBtn) return;
-        
+
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        
+
         if (!audio) initAudio();
-        
+
         const wasPlaying = !audio.paused;
         audio.currentTime = 0;
         updateProgress();
-        
+
         if (wasPlaying) {
             try {
                 audio.play().catch(err => {
@@ -1002,40 +1031,40 @@
             }
         }
     }
-    
+
     // PROGRESS CLICK - Event delegation
     function handleProgressClick(e) {
         const clickedTrack = e.target.closest('#progress-track');
         if (!clickedTrack || isDragging) return;
-        
+
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        
+
         if (!audio) initAudio();
-        
+
         const rect = clickedTrack.getBoundingClientRect();
-        const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : 
-                       (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : 
-                       e.clientX;
+        const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX :
+            (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX :
+                e.clientX;
         const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         audio.currentTime = percent * audio.duration;
         updateProgress();
     }
-    
+
     // PROGRESS DRAG - Event delegation
     function handleProgressDragStart(e) {
         const clickedHandle = e.target.closest('#progress-handle');
         if (!clickedHandle) return;
-        
+
         isDragging = true;
         e.preventDefault();
     }
-    
+
     function handleProgressDrag(e) {
         if (!isDragging || !audio) return;
-        
+
         const allTracks = document.querySelectorAll('#progress-track');
         if (allTracks.length > 0) {
             const firstTrack = allTracks[0];
@@ -1046,13 +1075,13 @@
             updateProgress();
         }
     }
-    
+
     function handleProgressDragEnd() {
         isDragging = false;
     }
-    
+
     // ADD BUTTON - Event delegation - SIFIRDAN YENİDEN İNŞA EDİLDİ
-    
+
     // Portal dropdown için body'de container oluştur
     let portalContainer = null;
     function getPortalContainer() {
@@ -1076,15 +1105,15 @@
         }
         return portalContainer;
     }
-    
+
     // Orijinal dropdown'ların referanslarını sakla (geri koymak için)
     const originalDropdowns = new Map();
-    
+
     function closeAllDropdowns() {
         // Tüm dropdown'ları kapat
         document.querySelectorAll('#add-dropdown').forEach(dropdown => {
             dropdown.setAttribute('hidden', '');
-            
+
             // Eğer portal'da ise, orijinal yerine geri koy
             if (originalDropdowns.has(dropdown)) {
                 const originalParent = originalDropdowns.get(dropdown);
@@ -1093,7 +1122,7 @@
                 }
                 originalDropdowns.delete(dropdown);
             }
-            
+
             // Inline style'ları temizle
             dropdown.style.position = '';
             dropdown.style.top = '';
@@ -1111,49 +1140,49 @@
             dropdown.style.opacity = '';
             dropdown.style.pointerEvents = '';
         });
-        
+
         // Portal container'ı temizle ve pointer-events'i kapat
         if (portalContainer) {
             portalContainer.innerHTML = '';
             portalContainer.style.pointerEvents = 'none';
         }
     }
-    
+
     function handleAddButtonClick(e) {
         const clickedBtn = e.target.closest('#add-btn');
         if (!clickedBtn) return;
-        
+
         if (e.type === 'touchend') {
             e.preventDefault();
         }
         e.stopPropagation();
-        
+
         const musicPlayer = clickedBtn.closest('.music-player');
         if (!musicPlayer) return;
-        
+
         const addDropdown = musicPlayer.querySelector('#add-dropdown');
         if (!addDropdown) return;
-        
+
         const isHidden = addDropdown.hasAttribute('hidden');
         const isInSectionModal = musicPlayer.closest('.section-modal') !== null;
         const isMobile = window.innerWidth <= 768;
-        
+
         if (isHidden) {
             // Önce tüm dropdown'ları kapat
             closeAllDropdowns();
-            
+
             // Mobilde ve anasayfada (section-modal dışında) ise portal kullan
             if (isMobile && !isInSectionModal) {
                 // Orijinal parent'ı sakla
                 originalDropdowns.set(addDropdown, addDropdown.parentNode);
-                
+
                 // Portal container'a taşı
                 const portal = getPortalContainer();
                 portal.appendChild(addDropdown);
-                
+
                 // Buton pozisyonunu al
                 const btnRect = clickedBtn.getBoundingClientRect();
-                
+
                 // Dropdown'u butonun altına konumlandır (fixed positioning)
                 addDropdown.style.position = 'fixed';
                 addDropdown.style.top = (btnRect.bottom + 10) + 'px';
@@ -1164,11 +1193,11 @@
                 addDropdown.style.pointerEvents = 'all';
                 addDropdown.style.transform = 'translateY(0)'; // Animasyon için
                 addDropdown.style.opacity = '1'; // Görünür yap
-                
+
                 // Portal container'ı aktif et
                 portal.style.pointerEvents = 'all';
             }
-            
+
             // Dropdown'u göster
             addDropdown.removeAttribute('hidden');
         } else {
@@ -1176,101 +1205,101 @@
             closeAllDropdowns();
         }
     }
-    
+
     // SPOTIFY LINK - Event delegation
     function handleSpotifyClick(e) {
         const spotifyLink = e.target.closest('[data-platform="spotify"]');
         if (!spotifyLink) return;
-        
+
         e.preventDefault();
         e.stopPropagation();
-        
+
         const musicPlayer = spotifyLink.closest('.music-player');
         const songTitleEl = musicPlayer ? musicPlayer.querySelector('#song-title') : null;
         const title = songTitleEl ? songTitleEl.textContent : 'Kimse Bilmez';
-        
+
         const searchQuery = encodeURIComponent(title);
         const spotifyURI = `spotify:search:${searchQuery}`;
         const spotifyWebURL = `https://open.spotify.com/search/${searchQuery}`;
-        
+
         window.location.href = spotifyURI;
         setTimeout(() => {
             window.open(spotifyWebURL, '_blank');
         }, 500);
-        
+
         // Dropdown'u kapat (overlay ve body scroll'u da temizle)
         closeAllDropdowns();
     }
-    
+
     // APPLE MUSIC LINK - Event delegation
     function handleAppleClick(e) {
         const appleLink = e.target.closest('[data-platform="apple"]');
         if (!appleLink) return;
-        
+
         e.preventDefault();
         e.stopPropagation();
-        
+
         const appleMusicURL = 'https://music.apple.com/tr/song/kimse-bilmez/1225998206';
         window.open(appleMusicURL, '_blank');
-        
+
         // Dropdown'u kapat (overlay ve body scroll'u da temizle)
         closeAllDropdowns();
     }
-    
+
     // Event delegation - Tüm butonlar için
     document.addEventListener('click', handlePlayClick, true);
     document.addEventListener('touchend', handlePlayClick, { passive: false, capture: true });
-    
+
     document.addEventListener('click', handleRepeatClick, true);
     document.addEventListener('touchend', handleRepeatClick, { passive: false, capture: true });
-    
+
     document.addEventListener('click', handleRestartClick, true);
     document.addEventListener('touchend', handleRestartClick, { passive: false, capture: true });
-    
+
     document.addEventListener('click', handleProgressClick, true);
     document.addEventListener('touchend', handleProgressClick, { passive: false, capture: true });
-    
+
     document.addEventListener('mousedown', handleProgressDragStart, true);
     document.addEventListener('touchstart', handleProgressDragStart, { passive: false, capture: true });
     document.addEventListener('mousemove', handleProgressDrag, true);
     document.addEventListener('touchmove', handleProgressDrag, { passive: false, capture: true });
     document.addEventListener('mouseup', handleProgressDragEnd, true);
     document.addEventListener('touchend', handleProgressDragEnd, true);
-    
+
     document.addEventListener('click', handleAddButtonClick, true);
     document.addEventListener('touchend', handleAddButtonClick, { passive: false, capture: true });
-    
+
     document.addEventListener('click', handleSpotifyClick, true);
     document.addEventListener('touchend', handleSpotifyClick, { passive: false, capture: true });
-    
+
     document.addEventListener('click', handleAppleClick, true);
     document.addEventListener('touchend', handleAppleClick, { passive: false, capture: true });
-    
+
     // Dışarı tıklanınca dropdown'ları kapat
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const clickedAddBtn = e.target.closest('#add-btn');
         const clickedDropdown = e.target.closest('#add-dropdown');
         const clickedPortal = e.target.closest('#dropdown-portal-container');
-        
+
         // Eğer buton, dropdown veya portal'a tıklanmadıysa kapat
         if (!clickedAddBtn && !clickedDropdown && !clickedPortal) {
             closeAllDropdowns();
         }
     });
-    
+
     // Touch event için de aynı
-    document.addEventListener('touchend', function(e) {
+    document.addEventListener('touchend', function (e) {
         const clickedAddBtn = e.target.closest('#add-btn');
         const clickedDropdown = e.target.closest('#add-dropdown');
         const clickedPortal = e.target.closest('#dropdown-portal-container');
-        
+
         if (!clickedAddBtn && !clickedDropdown && !clickedPortal) {
             closeAllDropdowns();
         }
     }, { passive: true });
-    
+
     // ESC tuşu ile dropdown'u kapat
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             const openDropdown = document.querySelector('#add-dropdown:not([hidden])');
             if (openDropdown) {
@@ -1278,40 +1307,40 @@
             }
         }
     });
-    
+
     // Resize ve scroll'da portal dropdown pozisyonunu güncelle
     function updatePortalDropdownPosition() {
         const portal = getPortalContainer();
         const dropdown = portal.querySelector('#add-dropdown:not([hidden])');
         if (!dropdown) return;
-        
+
         // Orijinal butonu bul
         const musicPlayer = document.querySelector('.music-player-section .music-player');
         if (!musicPlayer) return;
-        
+
         const addBtn = musicPlayer.querySelector('#add-btn');
         if (!addBtn) return;
-        
+
         const btnRect = addBtn.getBoundingClientRect();
-        
+
         // Dropdown pozisyonunu güncelle
         dropdown.style.top = (btnRect.bottom + 10) + 'px';
         dropdown.style.right = (window.innerWidth - btnRect.right) + 'px';
     }
-    
+
     // Resize ve scroll event'lerinde pozisyonu güncelle
     let updateTimeout;
     function debouncedUpdate() {
         clearTimeout(updateTimeout);
         updateTimeout = setTimeout(updatePortalDropdownPosition, 10);
     }
-    
+
     window.addEventListener('resize', debouncedUpdate);
     window.addEventListener('scroll', debouncedUpdate, true);
 })();
 
 // Yıldönümü Pop-up Mantığı
-(function() {
+(function () {
     const popup = document.getElementById('anniversary-popup');
     const closeBtn = document.getElementById('anniversary-close');
     const continueBtn = document.getElementById('anniversary-continue');
@@ -1322,7 +1351,7 @@
     const particleInput = document.getElementById('particle-input');
     const canvas = document.getElementById('confetti-canvas');
     const particleCanvas = document.getElementById('particle-text-canvas');
-    
+
     if (!popup || !closeBtn || !continueBtn || !canvas || !particleCanvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -1356,7 +1385,7 @@
 
     // Mouse position for particle interaction
     const mouse = { x: null, y: null, radius: 100 };
-    
+
     function updateMousePos(clientX, clientY) {
         const rect = particleCanvas.getBoundingClientRect();
         mouse.x = clientX - rect.left;
@@ -1365,13 +1394,13 @@
 
     particleCanvas.addEventListener('mousemove', (e) => {
         updateMousePos(e.clientX, e.clientY);
-        
+
         // Sadece pop-up aktifken ve particle-active class'ı varken tetikle
         if (!popup.hasAttribute('hidden') && popup.classList.contains('particle-active')) {
             // UI tetikleme Particle.update içinde (itilme/dağıtılma kontrolü ile)
         }
     });
-    
+
     // Dokunmatik etkileşim desteği (touch events)
     particleCanvas.addEventListener('touchstart', (e) => {
         if (e.touches.length > 0) {
@@ -1392,7 +1421,7 @@
         mouse.x = null;
         mouse.y = null;
     }, { passive: true });
-    
+
     // Tıklama ile de tetikle
     particleCanvas.addEventListener('mousedown', () => {
         if (canTriggerFinalUI && !finalUIShown) {
@@ -1406,7 +1435,7 @@
             // Başlangıç pozisyonu
             this.x = startX !== undefined ? startX : Math.random() * particleCanvas.width / dpr;
             this.y = startY !== undefined ? startY : Math.random() * particleCanvas.height / dpr;
-            
+
             // "gradual" ise başlangıç opaklığını 0 yap ve hedefe çok yakın başlat
             if (animationType === 'gradual') {
                 this.x = x + (Math.random() - 0.5) * 5;
@@ -1415,23 +1444,23 @@
             } else {
                 this.opacity = Math.random() * 0.5 + 0.5;
             }
-            
+
             // Ekran genişliğine göre tanecik boyutunu ölçeklendir
             const screenScale = Math.min(window.innerWidth / 1200, 1);
             this.size = (Math.random() * 2.8 + 1.2) * (screenScale < 0.5 ? 0.95 : 1);
-            
+
             this.baseX = x;
             this.baseY = y;
-            
+
             this.density = (Math.random() * 15) + 1;
             const currentPalette = allColorThemes[activeTheme] || anniversaryColors;
             this.color = currentPalette[Math.floor(Math.random() * currentPalette.length)];
             this.active = true;
-            this.vx = 0; 
+            this.vx = 0;
             this.vy = 0;
-            this.friction = 0.75; 
-            this.ease = 0.025; 
-            
+            this.friction = 0.75;
+            this.ease = 0.025;
+
             this.targetOpacity = Math.random() * 0.3 + 0.7;
             this.shimmerSpeed = Math.random() * 0.02 + 0.005;
         }
@@ -1446,7 +1475,7 @@
             if (this.opacity < this.targetOpacity) {
                 this.opacity += 0.015;
             }
-            
+
             // Shimmer mobilde kapalı
             if (window.innerWidth >= 768) {
                 this.opacity += Math.sin(Date.now() * this.shimmerSpeed) * 0.005;
@@ -1458,16 +1487,16 @@
                 const dy = mouse.y - this.y;
                 const distanceSq = dx * dx + dy * dy;
                 const radiusSq = mouse.radius * mouse.radius;
-                
+
                 if (distanceSq < radiusSq) {
                     const distance = Math.sqrt(distanceSq);
                     const force = (mouse.radius - distance) / mouse.radius;
                     const invDist = 1 / (distance || 1);
                     const forceDensity = force * this.density * -0.8;
-                    
+
                     this.vx += dx * invDist * forceDensity;
                     this.vy += dy * invDist * forceDensity;
-                    
+
                     if (canTriggerFinalUI && !finalUIShown) {
                         showFinalUI();
                     }
@@ -1476,10 +1505,10 @@
 
             this.vx *= this.friction;
             this.vy *= this.friction;
-            
+
             this.x += this.vx + (this.baseX - this.x) * this.ease;
             this.y += this.vy + (this.baseY - this.y) * this.ease;
-            
+
             // Titreşim önleme (snap to base)
             if (Math.abs(this.baseX - this.x) < 0.1 && Math.abs(this.baseY - this.y) < 0.1) {
                 this.x = this.baseX;
@@ -1492,41 +1521,41 @@
 
     function initParticleText(text, animationType = 'scatter') {
         if (!text) return;
-        
+
         // Yüksek çözünürlüklü (Retina) render için dpr ayarı
         const dpr = window.devicePixelRatio || 1;
         const logicalWidth = window.innerWidth;
         const logicalHeight = window.innerHeight;
-        
+
         particleCanvas.width = logicalWidth * dpr;
         particleCanvas.height = logicalHeight * dpr;
         particleCanvas.style.width = logicalWidth + 'px';
         particleCanvas.style.height = logicalHeight + 'px';
-        
+
         pCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         pCtx.clearRect(0, 0, logicalWidth, logicalHeight);
-        
+
         // Fontun yüklendiğinden emin olmak için tekrar set et
         pCtx.fillStyle = 'white';
         // Mobilde font boyutunu daha okunabilir yapmak için ölçeklendirme güncellendi
         let baseFontSize = logicalWidth < 768 ? Math.min(logicalWidth / 5.5, 90) : Math.min(logicalWidth / 8, 120);
-        
+
         // "seni seviyorum" gibi uzun kelimeler için mobilde fontu mükemmel sığacak şekilde ayarla
         if (logicalWidth < 768) {
             const charCount = text.length;
             // Kenarlardan 20px (toplam 40px) güvenli boşluk bırak (Padding)
-            const safeWidth = logicalWidth - 40; 
-            
+            const safeWidth = logicalWidth - 40;
+
             if (charCount > 10) { // "seni seviyorum" (14 karakter)
                 // Karakter başına düşen genişliği biraz daha daraltarak S ve M harflerini içeri çekiyoruz
-                baseFontSize = safeWidth / (charCount * 0.62); 
+                baseFontSize = safeWidth / (charCount * 0.62);
                 baseFontSize = Math.min(baseFontSize, 46); // Maksimum 46px ile sığmayı garanti et
             } else if (charCount > 6) { // "seviyorum" (9 karakter)
                 baseFontSize = safeWidth / (charCount * 0.7);
                 baseFontSize = Math.min(baseFontSize, 65);
             }
         }
-        
+
         const fontSize = (logicalWidth < 768 && text.length > 10) ? baseFontSize : (text.length > 10 ? baseFontSize * (10 / text.length) : baseFontSize);
         pCtx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
         pCtx.textAlign = 'center';
@@ -1539,8 +1568,8 @@
 
         const newPositions = [];
         // Tanecik yoğunluğu (step) mobilde okunabilirliği artırmak için düşürüldü (daha sık tanecik)
-        const step = logicalWidth < 768 ? 3 : 3; 
-        
+        const step = logicalWidth < 768 ? 3 : 3;
+
         for (let y = 0; y < data.height; y += step * dpr) {
             for (let x = 0; x < data.width; x += step * dpr) {
                 // Koordinatları dpr ile bölerek mantıksal piksel koordinatlarına geri dönüyoruz
@@ -1615,14 +1644,14 @@
         particleInput.addEventListener('input', (e) => {
             const val = e.target.value.trim().toLowerCase();
             let targetText = e.target.value || 'seni seviyorum';
-            
+
             // SİHİRBAZLIK: Derin yazınca Ege, Ege yazınca Derin çıksın
             if (val === 'derin') {
                 targetText = 'Ege';
             } else if (val === 'ege') {
                 targetText = 'Derin';
             }
-            
+
             // 'gradual' animasyonu ile pürüzsüz geçiş yap
             initParticleText(targetText, 'gradual');
         });
@@ -1631,7 +1660,7 @@
     // ULTRA PERFORMANSLI YENİ RENK PALETİ MANTIĞI
     const paletteTrigger = document.getElementById('palette-trigger');
     const paletteContent = document.getElementById('palette-content');
-    
+
     if (paletteTrigger && paletteContent) {
         paletteTrigger.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1663,21 +1692,21 @@
 
     function animateParticles(time) {
         pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-        
+
         // ULTRA PERFORMANS: Renk gruplama (Batch Rendering)
         const groups = {};
-        
+
         for (let i = 0, len = particles.length; i < len; i++) {
             const p = particles[i];
             if (!p.active) continue;
-            
+
             p.update();
-            
+
             // Renk grubuna ekle
             if (!groups[p.color]) groups[p.color] = [];
             groups[p.color].push(p);
         }
-        
+
         // Her renk grubunu tek bir path ile çiz
         for (const color in groups) {
             pCtx.fillStyle = color;
@@ -1692,7 +1721,7 @@
             }
             pCtx.fill();
         }
-        
+
         particleAnimationId = requestAnimationFrame(animateParticles);
     }
 
@@ -1700,10 +1729,10 @@
         if (!canTriggerFinalUI || finalUIShown) return;
         finalUIShown = true;
         popup.classList.add('ui-visible');
-        
+
         // UI göründüğünde paleti otomatik açabiliriz veya sadece butonu gösteririz
         // Şimdilik sadece butonun görünürlüğünü ana CSS üzerinden yönetiyoruz
-        
+
         // UI göründüğünde mouse etkileşimini biraz daha yumuşat
         mouse.radius = 120;
     }
@@ -1718,36 +1747,36 @@
         clearParticleSequence();
         popup.classList.add('particle-active');
         popup.classList.remove('ui-visible'); // UI'ı kesinlikle sıfırla
-        
+
         particles = [];
         canTriggerFinalUI = false;
         finalUIShown = false;
         animateParticles();
-        
+
         // Yeni paleti göster
         const paletteMaster = document.getElementById('palette-master-container');
         if (paletteMaster) {
             paletteMaster.removeAttribute('hidden');
             // CSS [hidden] selector ile kontrol ediliyor
         }
-        
+
         // Dinamik Bekleme Süreleri: Zincirleme ve ağ gecikmesine dayanıklı yapı
         // 1. "seni"
         particleSequenceTimeouts.push(setTimeout(() => {
             initParticleText('seni', 'drop');
-            
+
             // 2. "seviyorum" (10 saniye sonra - Seni kelimesinin ekranda kalma süresi uzatıldı)
             particleSequenceTimeouts.push(setTimeout(() => {
                 initParticleText('seviyorum', 'drop');
-                
+
                 // 3. "seni seviyorum" (10 saniye sonra)
                 particleSequenceTimeouts.push(setTimeout(() => {
                     initParticleText('seni seviyorum', 'sides');
                     canTriggerFinalUI = true;
                 }, 10000));
-                
+
             }, 10000));
-            
+
         }, 1000));
     }
 
@@ -1803,7 +1832,7 @@
         const now = new Date();
         const month = now.getMonth() + 1; // 0-11 -> 1-12
         const day = now.getDate();
-        
+
         // ŞU AN GÖRÜNTÜLEMEK İÇİN GEÇİCİ OLARAK GÜNCELLENDİ (19 Mart - 29 Mart arası)
         if (month === 3 && day >= 19 && day <= 29) {
             // Kullanıcı bu oturumda henüz kapatmadıysa göster
@@ -1818,7 +1847,7 @@
             }
         }
     }
-    
+
     function closePopup() {
         // Eğer zaten particle fazındaysak, X butonuna basınca tamamen çıkmalıyız
         if (popup.classList.contains('particle-active')) {
@@ -1832,7 +1861,7 @@
             candle.style.transition = 'opacity 0.5s ease';
             candle.style.opacity = '0';
         }
-        
+
         // İçeriği gizle ve particle fazını başlat
         startParticlePhase();
     }
@@ -1841,14 +1870,14 @@
         clearParticleSequence();
         popup.style.opacity = '0';
         popup.style.transition = 'opacity 0.5s ease';
-        
+
         // Renk paletini de gizle
         const paletteMaster = document.getElementById('palette-master-container');
         if (paletteMaster) {
             paletteMaster.classList.remove('visible');
             setTimeout(() => paletteMaster.setAttribute('hidden', ''), 500);
         }
-        
+
         setTimeout(() => {
             popup.setAttribute('hidden', '');
             document.body.style.overflow = '';
@@ -1876,7 +1905,7 @@
             blowOut();
         }, { passive: false });
     }
-    
+
     closeBtn.addEventListener('click', closePopup);
     closeBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -1896,7 +1925,7 @@
             finalExit();
         }, { passive: false });
     }
-    
+
     // Oyun butonu (Kalıcı erişim)
     if (navGameBtn) {
         navGameBtn.addEventListener('click', (e) => {
@@ -1905,16 +1934,16 @@
             popup.removeAttribute('hidden');
             popup.style.opacity = '1';
             document.body.style.overflow = 'hidden';
-            
+
             // Eğer pasta/mum içeriği varsa gizle
             const contentMinimal = popup.querySelector('.anniversary-content-minimal');
             if (contentMinimal) {
                 contentMinimal.style.display = 'none';
             }
-            
+
             // Partikül fazını başlat
             startParticlePhase();
-            
+
             // Menü açıksa kapat (mobil için)
             const nav = document.getElementById('main-nav');
             const navToggle = document.getElementById('nav-toggle');
@@ -1924,7 +1953,7 @@
             }
         });
     }
-    
+
     if (questionBtn) {
         questionBtn.addEventListener('click', () => {
             const valentineModal = document.getElementById('valentine-modal');
@@ -1936,13 +1965,13 @@
             const heartLoader = valentineModal.querySelector(".js-heart-loader");
             const yesBtn = valentineModal.querySelector(".js-yes-btn");
             const noBtn = valentineModal.querySelector(".js-no-btn");
-            
+
             if (!valentineModal || !questionContainer || !resultContainer || !heartLoader || !yesBtn || !noBtn) return;
-            
+
             // Modal'ı göster ve sıfırla
             valentineModal.removeAttribute('hidden');
             valentineModal.style.opacity = '1';
-            
+
             // Videoları mobilde manuel olarak oynat (autoplay bazen engellenir)
             if (gifQuestion) {
                 gifQuestion.load();
@@ -1951,16 +1980,16 @@
             if (gifResult) {
                 gifResult.load(); // İkinci videoyu önceden yükle
             }
-            
+
             // Ana pop-up'ı tamamen gizle (siteyi görebilmek için)
             popup.classList.add('valentine-active');
-            
+
             questionContainer.style.display = "block";
             resultContainer.style.display = "none";
             heartLoader.style.display = "none";
             noBtn.style.position = "static";
             yesBtn.style.transform = "scale(1)";
-            
+
             // Kapatma butonu - Valentine modalını kapat ve anasayfaya dön
             if (valentineClose) {
                 valentineClose.onclick = () => {
@@ -1969,18 +1998,18 @@
                     finalExit(); // Direkt anasayfaya (siteye) dön
                 };
             }
-            
+
             // Hayır butonu kaçma mantığı
             const moveNoBtn = () => {
                 const modalRect = valentineModal.querySelector('.valentine-card').getBoundingClientRect();
                 const btnRect = noBtn.getBoundingClientRect();
-                
+
                 const maxX = modalRect.width - btnRect.width - 40;
                 const maxY = modalRect.height - btnRect.height - 40;
-                
+
                 const randomX = Math.floor(Math.random() * maxX) - (modalRect.width / 2) + (btnRect.width / 2);
                 const randomY = Math.floor(Math.random() * maxY) - (modalRect.height / 2) + (btnRect.height / 2);
-                
+
                 noBtn.style.position = 'absolute';
                 noBtn.style.left = `calc(50% + ${randomX}px)`;
                 noBtn.style.top = `calc(50% + ${randomY}px)`;
@@ -1991,24 +2020,24 @@
                 e.preventDefault();
                 moveNoBtn();
             }, { passive: false });
-            
+
             // Evet butonu tıklanınca
             const handleYes = () => {
                 questionContainer.style.display = "none";
                 heartLoader.style.display = "block";
-                
+
                 // 3 saniye sonra sonucu göster
                 setTimeout(() => {
                     heartLoader.style.display = "none";
                     resultContainer.style.display = "block";
                     if (gifResult) gifResult.play();
-                    
+
                     // Konfeti fırlat
                     if (typeof initConfetti === 'function') {
                         initConfetti();
                         animateConfetti();
                     }
-                    
+
                     // 4 saniye sonra tüm pop-up'ı kapatıp anasayfaya (siteye) geçişi sağla
                     setTimeout(() => {
                         valentineModal.style.opacity = '0';
@@ -2029,16 +2058,16 @@
             }, { passive: false });
         });
     }
-    
+
     // Dışarı tıklayınca kapat (particle fazında değilse)
-    popup.addEventListener('click', function(e) {
+    popup.addEventListener('click', function (e) {
         if (e.target === popup && !popup.classList.contains('particle-active')) {
             closePopup();
         }
     });
-    
+
     // ESC ile kapat
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !popup.hasAttribute('hidden')) {
             if (popup.classList.contains('particle-active')) {
                 finalExit();
@@ -2053,7 +2082,7 @@
         window.visualViewport.addEventListener('resize', () => {
             const viewport = window.visualViewport;
             const inputWrapper = document.querySelector('.anniversary-input-wrapper');
-            
+
             if (inputWrapper && !popup.hasAttribute('hidden')) {
                 // Eğer viewport boyutu çok küçüldüyse (klavye açıldıysa)
                 if (viewport.height < window.innerHeight * 0.75) {
@@ -2086,7 +2115,7 @@
             }
             lastWidth = newWidth;
             lastHeight = newHeight;
-        } 
+        }
         // Sadece yükseklik değiştiyse (klavye), canvas boyutunu güncelle ama partikülleri sıfırlama
         else if (newHeight !== lastHeight) {
             const dpr = window.devicePixelRatio || 1;
@@ -2098,7 +2127,7 @@
             lastHeight = newHeight;
         }
     });
-    
+
     // Kontrolü çalıştır - Tüm fontlar ve scriptler yüklendikten sonra (Senkronizasyon)
     window.addEventListener('load', () => {
         if (document.fonts) {
@@ -2112,7 +2141,7 @@
 })();
 
 // Gizli Buton ve Kartpostal
-(function() {
+(function () {
     // DOM hazır olduğunda çalıştır
     function initHiddenPostcard() {
         const hiddenPostcard = document.getElementById('hidden-postcard');
@@ -2120,11 +2149,11 @@
         const postcardClose = document.getElementById('postcard-close');
         const siteHeader = document.querySelector('.site-header');
         const brandLogo = document.querySelector('.brand__logo');
-        
+
         if (!hiddenPostcard || !hiddenButton || !postcardClose) {
             return;
         }
-        
+
         // Header yüksekliğini ve buton genişliğini ayarla
         function updatePostcardDimensions() {
             if (siteHeader) {
@@ -2132,7 +2161,7 @@
                 const headerHeight = siteHeader.offsetHeight;
                 hiddenPostcard.style.height = headerHeight + 'px';
             }
-            
+
             // ">" işaretine kadar genişlik hesapla
             if (brandLogo) {
                 const brandRect = brandLogo.getBoundingClientRect();
@@ -2142,17 +2171,17 @@
                 hiddenButton.style.marginRight = '-' + (buttonWidth + 5) + 'px';
             }
         }
-        
+
         // İlk yüklemede ve resize'da güncelle (debounce ile)
         updatePostcardDimensions();
         let resizeTimeout;
-        window.addEventListener('resize', function() {
+        window.addEventListener('resize', function () {
             clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function() {
+            resizeTimeout = setTimeout(function () {
                 updatePostcardDimensions();
             }, 100);
         });
-        
+
         // Gizli postcard'ın görünürlüğünü kontrol et
         function updatePostcardVisibility() {
             // Eğer section modal açıksa veya normal modal açıksa gizle
@@ -2160,42 +2189,42 @@
             const modalOverlay = document.querySelector('[data-modal-overlay]');
             const galleryModal = document.querySelector('[data-gallery-modal]');
             const photoViewer = document.querySelector('[data-photo-viewer]');
-            
+
             const isModalOpen = (sectionModal && !sectionModal.hasAttribute('hidden')) ||
-                               (modalOverlay && !modalOverlay.hasAttribute('hidden')) ||
-                               (galleryModal && !galleryModal.hasAttribute('hidden')) ||
-                               (photoViewer && !photoViewer.hasAttribute('hidden'));
-            
+                (modalOverlay && !modalOverlay.hasAttribute('hidden')) ||
+                (galleryModal && !galleryModal.hasAttribute('hidden')) ||
+                (photoViewer && !photoViewer.hasAttribute('hidden'));
+
             if (isModalOpen) {
                 hiddenPostcard.style.display = 'none';
             } else {
                 hiddenPostcard.style.display = 'flex';
             }
         }
-        
+
         // İlk yüklemede kontrol et
         updatePostcardVisibility();
-        
+
         // Modal açılıp kapandığında kontrol et
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'hidden') {
                     updatePostcardVisibility();
                 }
             });
         });
-        
+
         // Tüm modal'ları izle
         const sectionModal = document.querySelector('[data-section-modal]');
         const modalOverlay = document.querySelector('[data-modal-overlay]');
         const galleryModal = document.querySelector('[data-gallery-modal]');
         const photoViewer = document.querySelector('[data-photo-viewer]');
-        
+
         if (sectionModal) observer.observe(sectionModal, { attributes: true, attributeFilter: ['hidden'] });
         if (modalOverlay) observer.observe(modalOverlay, { attributes: true, attributeFilter: ['hidden'] });
         if (galleryModal) observer.observe(galleryModal, { attributes: true, attributeFilter: ['hidden'] });
         if (photoViewer) observer.observe(photoViewer, { attributes: true, attributeFilter: ['hidden'] });
-        
+
         // Kartpostalı açma fonksiyonu
         function openPostcard(e) {
             if (e) {
@@ -2204,21 +2233,21 @@
             }
             hiddenPostcard.classList.add('open');
         }
-        
+
         // Gizli butona tıklayınca/touch ile kartpostalı aç (mobil desteği)
-        hiddenButton.addEventListener('click', function(e) {
+        hiddenButton.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             openPostcard(e);
         }, { capture: true });
-        
+
         // Mobil için touch event'leri - daha agresif yaklaşım
         let touchStartTime = 0;
         let touchStartY = 0;
         let touchStartX = 0;
-        
-        hiddenButton.addEventListener('touchstart', function(e) {
+
+        hiddenButton.addEventListener('touchstart', function (e) {
             touchStartTime = Date.now();
             if (e.touches && e.touches[0]) {
                 touchStartY = e.touches[0].clientY;
@@ -2226,11 +2255,11 @@
             }
             e.stopPropagation();
         }, { passive: true, capture: true });
-        
-        hiddenButton.addEventListener('touchend', function(e) {
+
+        hiddenButton.addEventListener('touchend', function (e) {
             const touchDuration = Date.now() - touchStartTime;
             let touchMoved = false;
-            
+
             if (e.changedTouches && e.changedTouches[0]) {
                 const touchEndY = e.changedTouches[0].clientY;
                 const touchEndX = e.changedTouches[0].clientX;
@@ -2239,7 +2268,7 @@
                 // 10px'den fazla hareket varsa scroll olarak kabul et
                 touchMoved = (deltaY > 10 || deltaX > 10);
             }
-            
+
             // Çok kısa dokunma (tap) ise ve scroll değilse aç
             if (touchDuration < 300 && !touchMoved) {
                 e.preventDefault();
@@ -2248,36 +2277,36 @@
                 openPostcard(e);
             }
         }, { passive: false, capture: true });
-        
+
         // Kapat butonuna tıklayınca kapat
-        postcardClose.addEventListener('click', function(e) {
+        postcardClose.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             hiddenPostcard.classList.remove('open');
         });
-        
-        postcardClose.addEventListener('touchend', function(e) {
+
+        postcardClose.addEventListener('touchend', function (e) {
             e.preventDefault();
             e.stopPropagation();
             hiddenPostcard.classList.remove('open');
         }, { passive: false });
-        
+
         // Çizgi dışına tıklayınca kapat
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!hiddenPostcard.contains(e.target) && hiddenPostcard.classList.contains('open')) {
                 hiddenPostcard.classList.remove('open');
             }
         });
-        
+
         // Mobil için touch event ile dışarı tıklama
-        document.addEventListener('touchend', function(e) {
+        document.addEventListener('touchend', function (e) {
             if (!hiddenPostcard.contains(e.target) && hiddenPostcard.classList.contains('open')) {
                 hiddenPostcard.classList.remove('open');
             }
         });
-        
+
     }
-    
+
     // DOM hazır olduğunda çalıştır
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initHiddenPostcard);
@@ -2287,25 +2316,25 @@
 })();
 
 // Sayfa yüklendiğinde her zaman en üste scroll et
-(function() {
+(function () {
     // Hash'i temizle ve en üste scroll et
     if (window.location.hash) {
         // Hash'i temizle ama sayfayı yeniden yükleme
         history.replaceState(null, null, ' ');
     }
-    
+
     // Sayfa yüklendiğinde en üste scroll et
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         window.scrollTo(0, 0);
     });
-    
+
     // DOMContentLoaded'da da en üste scroll et (daha hızlı)
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo(0, 0);
     });
-    
+
     // Hash değişikliklerini engelle
-    window.addEventListener('hashchange', function(e) {
+    window.addEventListener('hashchange', function (e) {
         e.preventDefault();
         window.scrollTo(0, 0);
         // Hash'i temizle
@@ -2316,69 +2345,69 @@
 })();
 
 // Posts Slider (Yazılar Slider) - Mobilde carousel/swipe desteği ile
-(function() {
+(function () {
     const postsContainer = document.querySelector('.posts-container');
     const postCards = document.querySelectorAll('.post-card[data-post-index]');
     const nextButton = document.getElementById('posts-next-btn');
     const prevButton = document.getElementById('posts-prev-btn');
-    
+
     // Mobil butonlar
     const nextButtonMobile = document.getElementById('posts-next-btn-mobile');
     const prevButtonMobile = document.getElementById('posts-prev-btn-mobile');
     const dotsContainer = document.getElementById('posts-nav-dots');
     const navMobile = document.getElementById('posts-nav-mobile');
-    
+
     if (!postsContainer || !postCards.length || !nextButton || !prevButton) return;
-    
+
     let currentIndex = 0;
     const isMobile = () => window.innerWidth <= 768;
     const visibleCount = () => isMobile() ? 1 : 3;
-    
+
     // Mobilde swipe için değişkenler
     let touchStartX = 0;
     let touchEndX = 0;
     let isDragging = false;
-    
+
     // Mobilde dots oluştur
     function createDots() {
         if (!dotsContainer || !isMobile()) return;
-        
+
         dotsContainer.innerHTML = '';
         const totalPages = postCards.length;
-        
+
         for (let i = 0; i < totalPages; i++) {
             const dot = document.createElement('div');
             dot.className = 'posts-nav-mobile__dot';
             if (i === currentIndex) {
                 dot.classList.add('active');
             }
-            dot.addEventListener('click', function() {
+            dot.addEventListener('click', function () {
                 goToIndex(i);
             });
             dotsContainer.appendChild(dot);
         }
     }
-    
+
     // Belirli bir index'e git
     function goToIndex(index) {
         if (index < 0 || index >= postCards.length) return;
-        
+
         currentIndex = index;
         updateVisiblePosts();
     }
-    
+
     // Görünümü güncelle
     function updateVisiblePosts() {
         const mobile = isMobile();
         const count = visibleCount();
-        
+
         if (mobile) {
             // Mobilde: Kartları yan yana göster, scroll ile geçiş
             postCards.forEach((card, index) => {
                 const cardIndex = parseInt(card.getAttribute('data-post-index'));
                 card.style.display = 'block';
             });
-            
+
             // Container'ı scroll et - doğru kartı göster (ortalanmış)
             if (postsContainer && currentIndex < postCards.length) {
                 const targetCard = postCards[currentIndex];
@@ -2395,7 +2424,7 @@
             // Desktop'ta: Eski mantık
             postCards.forEach((card, index) => {
                 const cardIndex = parseInt(card.getAttribute('data-post-index'));
-                
+
                 if (cardIndex >= currentIndex && cardIndex < currentIndex + count) {
                     card.style.display = 'block';
                 } else {
@@ -2403,30 +2432,30 @@
                 }
             });
         }
-        
+
         // Buton görünürlüğünü ayarla
         const totalPosts = postCards.length;
         const maxIndex = mobile ? totalPosts - 1 : totalPosts - count;
-        
+
         // Desktop butonları
         if (currentIndex === 0) {
             prevButton.style.display = 'none';
         } else {
             prevButton.style.display = 'flex';
         }
-        
+
         if (currentIndex >= maxIndex) {
             nextButton.style.display = 'none';
         } else {
             nextButton.style.display = 'flex';
         }
-        
+
         // Mobil butonları
         if (prevButtonMobile && nextButtonMobile) {
             prevButtonMobile.disabled = currentIndex === 0;
             nextButtonMobile.disabled = currentIndex >= maxIndex;
         }
-        
+
         // Dots güncelle
         if (dotsContainer && isMobile()) {
             const dots = dotsContainer.querySelectorAll('.posts-nav-mobile__dot');
@@ -2439,45 +2468,45 @@
             });
         }
     }
-    
+
     // Navigate fonksiyonu
     function goNext() {
         const mobile = isMobile();
         const maxIndex = mobile ? postCards.length - 1 : postCards.length - visibleCount();
-        
+
         if (currentIndex < maxIndex) {
             currentIndex++;
             updateVisiblePosts();
         }
     }
-    
+
     function goPrev() {
         if (currentIndex > 0) {
             currentIndex--;
             updateVisiblePosts();
         }
     }
-    
+
     // Mobilde swipe desteği
     function handleTouchStart(e) {
         if (!isMobile()) return;
         touchStartX = e.touches[0].clientX;
         isDragging = true;
     }
-    
+
     function handleTouchMove(e) {
         if (!isMobile() || !isDragging) return;
         // Scroll'u engelleme - sadece swipe için
     }
-    
+
     function handleTouchEnd(e) {
         if (!isMobile() || !isDragging) return;
         isDragging = false;
-        
+
         touchEndX = e.changedTouches[0].clientX;
         const swipeDistance = touchStartX - touchEndX;
         const minSwipeDistance = 50; // Minimum kaydırma mesafesi
-        
+
         if (Math.abs(swipeDistance) > minSwipeDistance) {
             if (swipeDistance > 0) {
                 // Sola kaydırma - sonraki
@@ -2488,12 +2517,12 @@
             }
         }
     }
-    
+
     // Scroll event'i - hangi kart görünüyorsa onu aktif yap (ortalanmış kontrol)
     let scrollTimeout;
     function handleScroll() {
         if (!isMobile()) return;
-        
+
         // Debounce scroll event
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
@@ -2501,18 +2530,18 @@
             const containerCenter = containerRect.left + containerRect.width / 2;
             let closestIndex = 0;
             let closestDistance = Infinity;
-            
+
             postCards.forEach((card, index) => {
                 const cardRect = card.getBoundingClientRect();
                 const cardCenter = cardRect.left + cardRect.width / 2;
                 const distance = Math.abs(cardCenter - containerCenter);
-                
+
                 if (distance < closestDistance) {
                     closestDistance = distance;
                     closestIndex = index;
                 }
             });
-            
+
             // Sadece index değiştiyse güncelle (sonsuz döngüyü önlemek için)
             if (closestIndex !== currentIndex) {
                 currentIndex = closestIndex;
@@ -2527,7 +2556,7 @@
                         }
                     });
                 }
-                
+
                 // Buton durumlarını güncelle
                 const maxIndex = postCards.length - 1;
                 if (prevButtonMobile && nextButtonMobile) {
@@ -2537,11 +2566,11 @@
             }
         }, 150);
     }
-    
+
     // Desktop butonları
     nextButton.addEventListener('click', goNext);
     prevButton.addEventListener('click', goPrev);
-    
+
     // Mobil butonları
     if (nextButtonMobile) {
         nextButtonMobile.addEventListener('click', goNext);
@@ -2549,7 +2578,7 @@
     if (prevButtonMobile) {
         prevButtonMobile.addEventListener('click', goPrev);
     }
-    
+
     // Mobilde swipe event'leri - her zaman ekle, içeride kontrol edilecek
     if (postsContainer) {
         postsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -2557,15 +2586,15 @@
         postsContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
         postsContainer.addEventListener('scroll', handleScroll, { passive: true });
     }
-    
+
     // Window resize için dots'ları yeniden oluştur
     let resizeTimeout;
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
+        resizeTimeout = setTimeout(function () {
             createDots();
             updateVisiblePosts();
-            
+
             // Mobilde resize sonrası scroll pozisyonunu düzelt (ortalanmış)
             if (isMobile() && postsContainer && currentIndex < postCards.length) {
                 const targetCard = postCards[currentIndex];
@@ -2580,11 +2609,11 @@
             }
         }, 250);
     });
-    
+
     // İlk durumu ayarla
     createDots();
     updateVisiblePosts();
-    
+
     // İlk yüklemede mobilde doğru pozisyona scroll et (ortalanmış)
     if (isMobile() && postsContainer) {
         setTimeout(() => {
@@ -2604,3 +2633,88 @@
 })();
 
 
+
+// Scroll Reveal Observer
+document.addEventListener('DOMContentLoaded', () => {
+    const targets = document.querySelectorAll('.post-card, .panel, .note-card');
+    targets.forEach(el => el.classList.add('reveal'));
+
+    const observerOption = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOption);
+
+    targets.forEach(el => observer.observe(el));
+});
+
+
+// İlişki Sayacı (11 Aralık 2023)
+(function () {
+    const startDate = new Date(2023, 11, 11); // Ay 0-indexed, 11 = Aralık
+
+    function updateCounter() {
+        const now = new Date();
+        let years = now.getFullYear() - startDate.getFullYear();
+        let months = now.getMonth() - startDate.getMonth();
+        let days = now.getDate() - startDate.getDate();
+        let hours = now.getHours() - startDate.getHours();
+        let minutes = now.getMinutes() - startDate.getMinutes();
+        let seconds = now.getSeconds() - startDate.getSeconds();
+
+        if (seconds < 0) { seconds += 60; minutes--; }
+        if (minutes < 0) { minutes += 60; hours--; }
+        if (hours < 0) { hours += 24; days--; }
+        if (days < 0) {
+            const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+            days += prevMonth.getDate();
+            months--;
+        }
+        if (months < 0) { months += 12; years--; }
+
+        const el = (id) => document.getElementById(id);
+        if (el('counter-years')) el('counter-years').textContent = years;
+        if (el('counter-months')) el('counter-months').textContent = months;
+        if (el('counter-days')) el('counter-days').textContent = days;
+        if (el('counter-hours')) el('counter-hours').textContent = hours;
+        if (el('counter-minutes')) el('counter-minutes').textContent = minutes;
+        if (el('counter-seconds')) el('counter-seconds').textContent = seconds;
+    }
+
+    updateCounter();
+    setInterval(updateCounter, 1000);
+})();
+
+// Vinyl Plak Dönme Efekti
+(function () {
+    const cover = document.querySelector('.music-player__cover');
+    if (!cover) return;
+
+    // MutationObserver ile play/pause icon değişikliğini izle
+    const playBtn = document.getElementById('play-btn');
+    if (!playBtn) return;
+
+    const playIcon = playBtn.querySelector('.play-icon');
+    const pauseIcon = playBtn.querySelector('.pause-icon');
+
+    if (playIcon && pauseIcon) {
+        const obs = new MutationObserver(() => {
+            const isPlaying = pauseIcon.style.display !== 'none';
+            if (isPlaying) {
+                cover.classList.add('playing');
+            } else {
+                cover.classList.remove('playing');
+            }
+        });
+        obs.observe(playIcon, { attributes: true, attributeFilter: ['style'] });
+        obs.observe(pauseIcon, { attributes: true, attributeFilter: ['style'] });
+    }
+})();
