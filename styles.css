@@ -1408,50 +1408,70 @@ body::after {
     box-shadow: 0 0 12px rgba(255, 34, 68, 0.5);
 }
 
+/* Masonry Layout */
 .gallery-modal__content {
     max-width: 1200px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    columns: 2;
+    column-gap: 14px;
     padding-top: 20px;
 }
 
 @media (min-width: 640px) {
     .gallery-modal__content {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
+        columns: 3;
+        column-gap: 18px;
     }
 }
 
 @media (min-width: 1024px) {
     .gallery-modal__content {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 24px;
+        columns: 3;
+        column-gap: 22px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .gallery-modal__content {
+        columns: 4;
+        column-gap: 22px;
     }
 }
 
 .gallery-modal__item {
-    aspect-ratio: 1;
+    break-inside: avoid;
+    margin-bottom: 14px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255, 34, 68, 0.3);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     background: var(--bg-elev);
     position: relative;
 }
 
+@media (min-width: 640px) {
+    .gallery-modal__item {
+        margin-bottom: 18px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .gallery-modal__item {
+        margin-bottom: 22px;
+    }
+}
+
 .gallery-modal__item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 24px rgba(255, 34, 68, 0.5);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(255, 34, 68, 0.4), 0 0 20px rgba(255, 34, 68, 0.2);
     border-color: rgba(255, 34, 68, 0.7);
     z-index: 1;
 }
 
 .gallery-modal__item img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
     display: block;
     /* Performans optimizasyonları */

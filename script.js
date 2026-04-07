@@ -2718,3 +2718,73 @@ document.addEventListener('DOMContentLoaded', () => {
         obs.observe(pauseIcon, { attributes: true, attributeFilter: ['style'] });
     }
 })();
+
+// Todo Konfeti Efekti - Checkbox tik atılınca mini kutlama
+(function () {
+    const PARTICLE_COUNT = 14;
+    const COLORS = ['#ff2244', '#ff8899', '#ffd700', '#ff4d6d', '#ffffff', '#ff6b9d'];
+
+    function createConfettiBurst(x, y) {
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;overflow:hidden;';
+        document.body.appendChild(container);
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const particle = document.createElement('div');
+            const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            const size = 4 + Math.random() * 6;
+            const angle = (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.5;
+            const velocity = 60 + Math.random() * 80;
+            const dx = Math.cos(angle) * velocity;
+            const dy = Math.sin(angle) * velocity - 30; // yukarı bias
+            const rotation = Math.random() * 720 - 360;
+            const shape = Math.random() > 0.5; // kare veya daire
+
+            particle.style.cssText = `
+                position:absolute;
+                left:${x}px;top:${y}px;
+                width:${size}px;height:${size}px;
+                background:${color};
+                border-radius:${shape ? '50%' : '2px'};
+                pointer-events:none;
+                opacity:1;
+                box-shadow:0 0 4px ${color}80;
+                transform:translate(0,0) rotate(0deg);
+                transition:transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94),opacity 0.7s ease;
+            `;
+            container.appendChild(particle);
+
+            // Animasyonu bir sonraki frame'de başlat
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    particle.style.transform = `translate(${dx}px, ${dy + 60}px) rotate(${rotation}deg)`;
+                    particle.style.opacity = '0';
+                });
+            });
+        }
+
+        // Temizle
+        setTimeout(() => container.remove(), 800);
+    }
+
+    // Tüm todo checkbox'larına event listener ekle (delegasyon ile)
+    document.addEventListener('change', function (e) {
+        const checkbox = e.target;
+        if (checkbox.type !== 'checkbox') return;
+        if (!checkbox.closest('.todo-item')) return;
+        if (!checkbox.checked) return;
+
+        // Checkbox'ın ekrandaki konumunu al
+        const rect = checkbox.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+
+        createConfettiBurst(x, y);
+
+        // Label'a completed class ekle
+        const label = checkbox.closest('.todo-item')?.querySelector('.todo-label');
+        if (label) {
+            label.classList.add('completed');
+        }
+    });
+})();
